@@ -1,7 +1,22 @@
-libhdfs3    a c/c++ hdfs client
+libhdfs3
 ========================
 
-1 Requirement
+**A Native C/C++ HDFS Client**
+
+## Description
+
+The Hadoop Distributed File System (HDFS) is a distributed file system designed to run on commodity hardware. HDFS is highly fault-tolerant and is designed to be deployed on low-cost hardware. HDFS provides high throughput access to application data and is suitable for applications that have large data sets.
+
+HDFS is implemented in JAVA language and additionally provides a JNI based C language library *libhdfs*. To use libhdfs, users must deploy the HDFS jars on every machine. This adds operational complexity for non-Java clients that just want to integrate with HDFS.
+
+**Libhdfs3**, which is designed as an alternative implementation of libhdfs, is implemented based on native Hadoop RPC protocol and HDFS data transfer protocol. It get rid of the drawback of JNI, has lightweight, small memory footprint code base, and is easy to use and deployed.
+
+Libhdfs3 is developed by [Pivotal](http://www.pivotal.io/) and first used in HAWQ project which is shipped in [Pivotal HD](http://www.pivotal.io/big-data/pivotal-hd).
+
+========================
+## Installation
+
+### Requirement
 
 To build libhdfs3, the following libraries are needed.
 
@@ -23,7 +38,7 @@ To run code coverage test, the following tools are needed.
     gcov (included in gcc distribution)
     lcov (tested on 1.9)            http://ltp.sourceforge.net/coverage/lcov.php
 
-2 Configuration
+### Configuration
 
 Assume libhdfs3 home directory is LIBHDFS3_HOME.
 
@@ -33,11 +48,11 @@ Assume libhdfs3 home directory is LIBHDFS3_HOME.
     ../bootstrap
 
 Environment variable CC and CXX can be used to setup the compiler.
-Script "bootstrap" is basically a wrapper of cmake command, user can use cmake directly to turn the configuration. 
+Script "bootstrap" is basically a wrapper of cmake command, user can use cmake directly to tune the configuration. 
 
 Run command "../bootstrap --help" for more configuration. 
 
-3 Build
+### Build
 
 Run command to build
     
@@ -47,7 +62,7 @@ To build concurrently, rum make with -j option.
 
     make -j8
 
-4 Test
+### Test
 
 To do unit test, run command
 
@@ -61,7 +76,7 @@ To show code coverage result, run command. Code coverage result can be found at 
 
     make ShowCoverage
 
-5 Install
+### Install
 
 To install libhdfs3, run command
 
