@@ -1,0 +1,7 @@
+.cproject
+.project
+.pydevproject
+ext/
+build/
+releng/
+.settings/
