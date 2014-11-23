@@ -81,3 +81,6 @@ To show code coverage result, run command. Code coverage result can be found at 
 To install libhdfs3, run command
 
     make install
+
+## Wiki
+https://github.com/PivotalRD/libhdfs3/wiki
