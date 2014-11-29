@@ -42,12 +42,13 @@ const LocatedBlock * LocatedBlocksImpl::findBlock(int64_t position) {
         LocatedBlock target(position);
         std::vector<LocatedBlock>::iterator bound;
 
-        if (blocks.empty()) {
+        if (blocks.empty() || position < blocks.begin()->getOffset()) {
             return NULL;
         }
 
         /*
-         * up is the first block which offset is not less than position.
+         * bound is first block which start offset is larger than
+         * or equal to position
          */
         bound = std::lower_bound(blocks.begin(), blocks.end(), target,
                                  std::less<LocatedBlock>());
@@ -57,6 +58,7 @@ const LocatedBlock * LocatedBlocksImpl::findBlock(int64_t position) {
         if (bound == blocks.end()) {
             retval = &blocks.back();
         } else if (bound->getOffset() > position) {
+            assert(bound != blocks.begin());
             --bound;
             retval = &(*bound);
         } else {
