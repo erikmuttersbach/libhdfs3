@@ -175,26 +175,29 @@ static inline void Convert(LocatedBlocks & lbs,
     std::sort(blocks.begin(), blocks.end(), std::less<LocatedBlock>());
 }
 
-static inline void Convert(FileStatus & fs, const HdfsFileStatusProto & proto) {
+static inline void Convert(const std::string & src, FileStatus & fs,
+                           const HdfsFileStatusProto & proto) {
     fs.setAccessTime(proto.access_time());
     fs.setBlocksize(proto.blocksize());
     fs.setGroup(proto.group().c_str());
     fs.setLength(proto.length());
     fs.setModificationTime(proto.modification_time());
     fs.setOwner(proto.owner().c_str());
-    fs.setPath(proto.path().c_str());
+    fs.setPath((src + "/" + proto.path()).c_str());
     fs.setReplication(proto.block_replication());
     fs.setSymlink(proto.symlink().c_str());
     fs.setPermission(Permission(proto.permission().perm()));
     fs.setIsdir(proto.filetype() == HdfsFileStatusProto::IS_DIR);
 }
 
-static inline void Convert(std::vector<FileStatus> & dl, const DirectoryListingProto & proto) {
+static inline void Convert(const std::string & src,
+                           std::vector<FileStatus> & dl,
+                           const DirectoryListingProto & proto) {
     RepeatedPtrField<HdfsFileStatusProto> ptrproto = proto.partiallisting();
 
     for (int i = 0; i < ptrproto.size(); i++) {
         FileStatus fileStatus;
-        Convert(fileStatus, ptrproto.Get(i));
+        Convert(src, fileStatus, ptrproto.Get(i));
         dl.push_back(fileStatus);
     }
 }

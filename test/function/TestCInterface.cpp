@@ -824,6 +824,16 @@ TEST_F(TestCInterface, TestGetPathInfo_InvalidInput) {
     EXPECT_TRUE(info == NULL && EINVAL == errno);
 }
 
+static std::string FileName(const std::string & path) {
+    size_t pos = path.find_last_of('/');
+
+    if (pos != path.npos && pos != path.length() - 1) {
+      return path.c_str() + pos + 1;
+    } else {
+      return path;
+    }
+}
+
 TEST_F(TestCInterface, TestGetPathInfo_Success) {
     hdfsFile file = NULL;
     hdfsFileInfo * info = NULL;
@@ -841,7 +851,7 @@ TEST_F(TestCInterface, TestGetPathInfo_Success) {
     //&& 0666 == info->mPermissions
     EXPECT_EQ(1, info->mReplication);
     EXPECT_EQ(0, info->mSize);
-    EXPECT_STREQ("testGetPathInfo", info->mName);
+    EXPECT_STREQ("testGetPathInfo", FileName(info->mName).c_str());
     EXPECT_STREQ(USER, info->mOwner);
     hdfsFreeFileInfo(info, 1);
     info = hdfsGetPathInfo(fs, BASE_DIR "/testGetDirInfo");
@@ -854,7 +864,7 @@ TEST_F(TestCInterface, TestGetPathInfo_Success) {
     //&& 0744 == info->mPermissions
     EXPECT_EQ(0, info->mReplication);
     EXPECT_EQ(0, info->mSize);
-    EXPECT_STREQ("testGetDirInfo", info->mName);
+    EXPECT_STREQ("testGetDirInfo", FileName(info->mName).c_str());
     EXPECT_STREQ(USER, info->mOwner);
     hdfsFreeFileInfo(info, 1);
     info = hdfsGetPathInfo(fs, "/");

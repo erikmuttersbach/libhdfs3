@@ -447,13 +447,20 @@ bool NamenodeImpl::getListing(const std::string & src,
         GetListingRequestProto request;
         GetListingResponseProto response;
         request.set_src(src);
-        request.set_startafter(startAfter);
+        size_t pos = startAfter.find_last_of("/");
+
+        if (pos != startAfter.npos && pos != startAfter.length() - 1) {
+            request.set_startafter(startAfter.c_str() + pos + 1);
+        } else {
+            request.set_startafter(startAfter);
+        }
+
         request.set_needlocation(needLocation);
         invoke(RpcCall(true, "getListing", &request, &response));
 
         if (response.has_dirlist()) {
             const DirectoryListingProto & lists = response.dirlist();
-            Convert(dl, lists);
+            Convert(src, dl, lists);
             return lists.remainingentries() > 0;
         }
 
@@ -548,11 +555,8 @@ FileStatus NamenodeImpl::getFileInfo(const std::string & src)
         invoke(RpcCall(true, "getFileInfo", &request, &response));
 
         if (response.has_fs()) {
-            Convert(retval, response.fs());
-            assert(src.find_last_of('/') != src.npos);
-            const char * path = src.c_str() + src.find_last_of('/') + 1;
-            path = src == "/" ? "/" : path;
-            retval.setPath(path);
+            Convert(src, retval, response.fs());
+            retval.setPath(src.c_str());
             return retval;
         }
 
