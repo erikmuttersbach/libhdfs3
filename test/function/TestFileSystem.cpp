@@ -135,6 +135,7 @@ TEST_F(TestFileSystem, listDirectory) {
 
     for (int i = 0; i < dirs; ++i) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << BASE_DIR << "testListDir/" << i;
         fs->mkdirs(ss.str().c_str(), 0777);
     }

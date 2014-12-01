@@ -78,6 +78,7 @@ public:
 
     const std::string toString() const {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << "[block pool ID: " << poolId << " block ID " << blockId << "_"
            << generationStamp << "]";
         return ss.str();

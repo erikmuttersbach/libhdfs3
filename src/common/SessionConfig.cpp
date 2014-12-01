@@ -41,6 +41,7 @@ template<typename T>
 static void CheckRangeGE(const char * key, T const & value, T const & target) {
     if (!(value >= target)) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << "Invalid configure item: \"" << key << "\", value: " << value
            << ", expected value should be larger than " << target;
         THROW(HdfsConfigInvalid, "%s", ss.str().c_str());

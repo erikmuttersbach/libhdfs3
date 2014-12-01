@@ -46,6 +46,7 @@ public:
     RpcServerInfo(const std::string & h, uint32_t p) :
         host(h) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << p;
         port = ss.str();
     }

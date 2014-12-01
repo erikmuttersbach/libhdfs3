@@ -173,6 +173,7 @@ bool PipelineImpl::addDatanodeToPipeline(const std::vector<DatanodeInfo> & exclu
 void PipelineImpl::checkPipelineWithReplicas() {
     if (static_cast<int>(nodes.size()) < replication) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         int size = nodes.size();
 
         for (int i = 0; i < size - 1; ++i) {
@@ -350,6 +351,7 @@ void PipelineImpl::locateNextBlock(
 static std::string FormatExcludedNodes(
     const std::vector<DatanodeInfo> & excludedNodes) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << "[";
     int size = excludedNodes.size();
 

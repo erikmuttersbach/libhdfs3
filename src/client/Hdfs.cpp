@@ -417,6 +417,7 @@ hdfsFS hdfsBuilderConnect(struct hdfsBuilder * bld) {
     Hdfs::Internal::SessionConfig conf(*bld->conf);
     std::string uri;
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     xmlURIPtr uriobj;
     FileSystem * fs = NULL;
 

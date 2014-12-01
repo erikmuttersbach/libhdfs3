@@ -311,6 +311,7 @@ TEST_F(TestInputStream, TestReadManyFileSameTime) {
 
     for (int i = 1; i <= 50; ++i) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << filename << i;
         WriteFile(fs, ss.str(), writeSize, flag);
         threads.push_back(

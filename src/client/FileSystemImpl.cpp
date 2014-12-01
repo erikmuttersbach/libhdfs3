@@ -104,6 +104,7 @@ FileSystemImpl::FileSystemImpl(const FileSystemKey & key, const Config & c) :
     conf(c), key(key), openedOutputStream(0), nn(NULL), sconf(c), user(key.getUser()) {
     static atomic<uint32_t> count(0);
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     srand((unsigned int) time(NULL));
     ss << "libhdfs3_client_random_" << rand() << "_count_" << ++count << "_pid_"
        << getpid() << "_tid_" << pthread_self();
@@ -162,6 +163,7 @@ void FileSystemImpl::connect() {
         tokenService += host;
     } else {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << host << ":" << port;
         namenodeInfos.resize(1);
         namenodeInfos[0].setRpcAddr(ss.str());
@@ -555,6 +557,7 @@ FileSystemStats FileSystemImpl::getFsStats() {
 
 static std::string ConstructTempFilePath(const std::string & path, const std::string clientName) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     srand((unsigned int) time(NULL));
     static atomic<uint32_t> count(0);
     std::vector<std::string> components = StringSplit(path, "/");

@@ -76,6 +76,7 @@ bool MappedFileWrapper::open(int fd, bool delegate) {
     size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << "FileDescriptor " << fd;
     path = ss.str();
 

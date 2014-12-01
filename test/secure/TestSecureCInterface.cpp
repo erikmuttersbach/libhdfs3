@@ -122,6 +122,7 @@ public:
         hdfsBuilderSetNameNode(bld, "default");
         hdfsBuilderSetForceNewInstance(bld);
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << "/tmp/krb5cc_";
         ss << getuid();
         const char * userCCpath = GetEnv("LIBHDFS3_TEST_USER_CCPATH", ss.str().c_str());

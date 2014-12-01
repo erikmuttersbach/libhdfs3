@@ -39,6 +39,7 @@ namespace Internal {
 FileSystemKey::FileSystemKey(const std::string & uri, const char * u) {
     xmlURIPtr uriobj;
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     uriobj = xmlParseURI(uri.c_str());
 
     try {
@@ -74,6 +75,7 @@ FileSystemKey::FileSystemKey(const std::string & uri, const char * u) {
             ss << "@" << uriobj->server;
         } else {
             std::stringstream s;
+            s.imbue(std::locale::classic());
             s << uriobj->port;
             port = s.str();
             ss << "@" << uriobj->server << ":" << uriobj->port;

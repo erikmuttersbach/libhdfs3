@@ -159,6 +159,7 @@ void TcpSocketImpl::writeFully(const char * buffer, int32_t size, int timeout) {
 
 void TcpSocketImpl::connect(const char * host, int port, int timeout) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << port;
     connect(host, ss.str().c_str(), timeout);
 }
@@ -178,6 +179,7 @@ void TcpSocketImpl::connect(const char * host, const char * port, int timeout) {
 
     int deadline = timeout;
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << "\"" << host << ":" << port << "\"";
     remoteAddr = ss.str();
 

@@ -51,6 +51,7 @@ class TestChecksum: public ::testing::Test {
 
         while (getline(in, str)) {
             std::stringstream ss(str);
+            ss.imbue(std::locale::classic());
             ss >> value >> str;
             cases.push_back(std::make_pair(value, str));
         }

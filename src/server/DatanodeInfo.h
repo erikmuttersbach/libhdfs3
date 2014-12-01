@@ -91,6 +91,7 @@ public:
 
     const std::string formatAddress() const {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << hostName << "(" << getIpAddr() << ")";
         return ss.str();
     }
@@ -114,6 +115,7 @@ public:
 
     std::string getXferAddr() const {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << getIpAddr() << ":" << getXferPort();
         return ss.str();
     }

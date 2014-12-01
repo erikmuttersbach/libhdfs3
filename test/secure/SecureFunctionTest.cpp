@@ -57,6 +57,7 @@ class TestKerberosConnect : public ::testing::Test {
 public:
     TestKerberosConnect() : conf("function-secure.xml") {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << "/tmp/krb5cc_";
         ss << getuid();
         const char * userCCpath = GetEnv("LIBHDFS3_TEST_USER_CCPATH",
@@ -138,6 +139,7 @@ public:
     TestToken() {
         Config conf("function-secure.xml");
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << "/tmp/krb5cc_";
         ss << getuid();
         const char * userCCpath = GetEnv("LIBHDFS3_TEST_USER_CCPATH", ss.str().c_str());
@@ -225,6 +227,7 @@ TEST_F(TestToken, BlockToken) {
 static void VerifyToken(const std::string & token, const std::string & host,
                         const std::string & port) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << "curl  -o /tmp/VerifyToken.out --silent --no-buffer -i \"http://"
        << host << ":" << port
        << "/webhdfs/v1/?op=GETHOMEDIRECTORY&delegation=" << token << "\""
@@ -238,6 +241,7 @@ static void VerifyToken(const std::string & token, const std::string & host,
 static void ExtractHostPort(const std::string & uri, std::string & host,
                             std::string & port) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
 
     if (NULL == strstr(uri.c_str(), "://")) {
         ss << "hdfs://" << uri;
@@ -351,6 +355,7 @@ TEST_F(TestNamenodeHA, SmallFiles) {
 
     for (int i = 0; i < count; ++i) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << filename << i;
         paths.push_back(ss.str());
     }

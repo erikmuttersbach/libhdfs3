@@ -121,6 +121,7 @@ static void GetExceptionDetailInternal(const Hdfs::HdfsException & e,
 
 const char * GetExceptionDetail(const Hdfs::HdfsException & e) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     GetExceptionDetailInternal(e, ss, true);
 
     try {
@@ -135,6 +136,7 @@ const char * GetExceptionDetail(const Hdfs::HdfsException & e) {
 
 const char * GetExceptionDetail(const exception_ptr e) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
 
     try {
         InitMessageBuffer();
@@ -179,6 +181,7 @@ static void GetExceptionMessage(const std::exception & e,
 
 const char * GetExceptionMessage(const exception_ptr e, std::string & buffer) {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
 
     try {
         Hdfs::rethrow_exception(e);

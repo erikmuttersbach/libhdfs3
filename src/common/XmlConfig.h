@@ -170,6 +170,7 @@ public:
     template<typename T>
     void set(const char * key, T const & value) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << value;
         kv[key] = ss.str();
     }

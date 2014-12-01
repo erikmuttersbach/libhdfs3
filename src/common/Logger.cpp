@@ -56,6 +56,7 @@ const char * SeverityName[] = { "FATAL", "ERROR", "WARNING", "INFO", "DEBUG1",
 
 static void InitProcessId() {
     std::stringstream ss;
+    ss.imbue(std::locale::classic());
     ss << "p" << getpid() << ", th" << pthread_self();
     snprintf(ProcessId, sizeof(ProcessId), "%s", ss.str().c_str());
 }

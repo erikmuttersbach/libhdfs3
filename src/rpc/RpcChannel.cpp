@@ -136,6 +136,7 @@ const RpcSaslProto_SaslAuth * RpcChannelImpl::createSaslClient(
 
     if (!auth) {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << "Client cannot authenticate via: ";
 
         for (int i = 0; i < auths->size(); ++i) {

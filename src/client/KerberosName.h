@@ -43,6 +43,7 @@ public:
 
     std::string getPrincipal() const {
         std::stringstream ss;
+        ss.imbue(std::locale::classic());
         ss << name;
 
         if (!host.empty()) {

@@ -736,6 +736,7 @@ TEST_F(TestOutputStream, TestWriteSameTime) {
 
     for (int i = 0; i <= 50; ++i) {
         std::stringstream buffer;
+        buffer.imbue(std::locale::classic());
         buffer << filename << i;
         threads.push_back(
             shared_ptr<thread>(
