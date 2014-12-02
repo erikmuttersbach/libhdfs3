@@ -1,0 +1,15 @@
+language: cpp
+
+compiler:
+  - gcc
+  
+install:
+  - sudo add-apt-repository -y ppa:boost-latest/ppa
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo add-apt-repository -y ppa:chris-lea/protobuf
+  - sudo apt-get update
+  - sudo apt-get install -qq g++-4.9 libxml2 libxml2-dev uuid-dev protobuf-compiler libprotobuf-dev libgsasl7-dev libkrb5-dev libboost1.54-all-dev
+
+script: 
+  - pwd && env && echo $PATH 
+  - mkdir -p build && cd build && ../bootstrap --enable-boost && make && make unittest && rm -rf * && CXX=g++-4.9 ../bootstrap --enable-debug && make && make unittest

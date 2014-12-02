@@ -1,5 +1,6 @@
 libhdfs3
 ========================
+[![Build Status](https://travis-ci.org/PivotalRD/libhdfs3.svg?branch=apache-rpc-9)](https://travis-ci.org/PivotalRD/libhdfs3)
 
 **A Native C/C++ HDFS Client**
 
