@@ -89,6 +89,7 @@ TEST_F(TestSocket, ConnectFailure_Fcntl) {
     EXPECT_CALL(syscall, socket(_, _, _)).Times(2).WillRepeatedly(Return(1));
     EXPECT_CALL(syscall, close(_)).Times(2).WillRepeatedly(Return(0));
     EXPECT_CALL(syscall, shutdown(_, _)).Times(2).WillRepeatedly(Return(0));
+    EXPECT_CALL(syscall, setsockopt(_,_,_,_,_)).Times(AnyNumber()).WillRepeatedly(Return(0));
     EXPECT_CALL(syscall, fcntl(_, _, _)).Times(3).WillOnce(Return(-1)).WillOnce(
         Return(0)).WillOnce(Return(-1));
     EXPECT_THROW(sock.connect(&addr, "host", "port", 1000),

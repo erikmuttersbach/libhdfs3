@@ -292,6 +292,9 @@ TEST(TestRpcChannel, TestInvoke_RetryIdempotent) {
     EXPECT_CALL(client, getCallId()).Times(AnyNumber()).WillRepeatedly(Return(callid));
     MkdirsRequestProto request;
     MkdirsResponseProto response, resp;
+    request.set_src("src");
+    request.set_createparent(true);
+    request.mutable_masked()->set_perm(0600u);
     resp.set_result(true);
     BuildResponse(callid, RpcResponseHeaderProto_RpcStatusProto_SUCCESS, NULL, NULL, &resp, respBody);
     MockSocket * sock = new MockSocket();
@@ -317,6 +320,9 @@ TEST(TestRpcChannel, TestInvoke_RetryIdempotent) {
 static void InvokeConcurrently(RpcChannelImpl * channel) {
     MkdirsRequestProto request;
     MkdirsResponseProto response;
+    request.set_src("src");
+    request.set_createparent(true);
+    request.mutable_masked()->set_perm(0600u);
     channel->addRef();
     EXPECT_THROW(DebugException(channel->invoke(RpcCall(true, "mkdirs", &request, &response))),
                  HdfsRpcException);
@@ -426,6 +432,9 @@ TEST(TestRpcChannel, TestTimeout) {
     ++channel.refs;
     MkdirsRequestProto request;
     MkdirsResponseProto response;
+    request.set_src("src");
+    request.set_createparent(true);
+    request.mutable_masked()->set_perm(0600u);
     RpcCall call(false, "mkdirs", &request, &response);
     EXPECT_THROW(TestTimeout(channel, call), HdfsTimeoutException);
     --channel.refs;
