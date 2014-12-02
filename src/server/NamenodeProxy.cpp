@@ -190,7 +190,7 @@ void NamenodeProxy::failoverToNextNamenode(uint32_t oldValue) {
 
 static void HandleHdfsFailoverException(const HdfsFailoverException & e) {
     try {
-        rethrow_if_nested(e);
+        Hdfs::rethrow_if_nested(e);
     } catch (...) {
         NESTED_THROW(Hdfs::HdfsRpcException, "%s", e.what());
     }

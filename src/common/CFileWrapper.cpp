@@ -26,6 +26,7 @@
  * limitations under the License.
  */
 #include <string>
+#include <limits>
 
 #include "Exception.h"
 #include "ExceptionInternal.h"

@@ -14,6 +14,12 @@
 #cmakedefine HAVE_SYMBOLIZE
 #cmakedefine NEED_BOOST
 #cmakedefine STRERROR_R_RETURN_INT
+#cmakedefine HAVE_STEADY_CLOCK
+#cmakedefine HAVE_NESTED_EXCEPTION
+#cmakedefine HAVE_BOOST_CHRONO
+#cmakedefine HAVE_STD_CHRONO
+#cmakedefine HAVE_BOOST_ATOMIC
+#cmakedefine HAVE_STD_ATOMIC
 
 // defined by gcc
 #if defined(__ELF__) && defined(OS_LINUX)

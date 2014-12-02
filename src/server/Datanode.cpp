@@ -55,7 +55,7 @@ void DatanodeImpl::invoke(const RpcCall & call, bool reuse) {
     } catch (const HdfsFailoverException & e) {
         //Datanode do not have HA configuration.
         channel.close(true);
-        rethrow_if_nested(e);
+        Hdfs::rethrow_if_nested(e);
         assert(false && "HdfsFailoverException should be always a wrapper of other exception");
     } catch (...) {
         channel.close(true);

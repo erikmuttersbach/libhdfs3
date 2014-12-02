@@ -28,6 +28,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include "Atomic.h"
 #include "ClientNamenodeProtocol.pb.h"
 #include "Exception.h"
 #include "ExceptionInternal.h"
@@ -40,6 +41,7 @@
 #include "rpc/RpcChannel.h"
 #include "RpcHeader.pb.h"
 #include "TestUtil.h"
+#include "Thread.h"
 #include "UnitTestUtils.h"
 
 #include <google/protobuf/io/coded_stream.h>
@@ -66,7 +68,7 @@ static RpcConfig & GetConfig(RpcChannelKey & key) {
 }
 
 static uint32_t GetCallId(uint32_t start) {
-    static atomic<uint32_t> id(start);
+    static Hdfs::Internal::atomic<uint32_t> id(start);
     return id++;
 }
 
@@ -162,7 +164,7 @@ TEST(TestRpcChannel, TestCancelPendingCall) {
     try {
         THROW(HdfsNetworkException, "expected exception");
     } catch (...) {
-        lock_guard<mutex> lock(channel.writeMut);
+        Hdfs::Internal::lock_guard<Hdfs::Internal::mutex> lock(channel.writeMut);
         EXPECT_NO_THROW(DebugException(channel.cleanupPendingCalls(Hdfs::current_exception())));
     }
 }
@@ -403,7 +405,7 @@ static void TestTimeout(RpcChannelImpl & channel, RpcCall & call) {
     try {
         channel.invoke(call);
     } catch (const HdfsRpcException & e) {
-        rethrow_if_nested(e);
+        Hdfs::rethrow_if_nested(e);
     }
 }
 

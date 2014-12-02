@@ -33,7 +33,7 @@
 #include <ctime>
 #include <cassert>
 
-#ifdef NEED_BOOST
+#if defined(NEED_BOOST) && defined(HAVE_BOOST_CHRONO)
 
 #include <boost/chrono.hpp>
 
@@ -45,7 +45,7 @@ using namespace boost::chrono;
 }
 }
 
-#else
+#elif defined(HAVE_STD_CHRONO)
 
 #include <chrono>
 
@@ -54,8 +54,14 @@ namespace Internal {
 
 using namespace std::chrono;
 
+#ifndef HAVE_STEADY_CLOCK
+typedef std::chrono::monotonic_clock steady_clock;
+#endif
+
 }
 }
+#else
+#error "no chrono library is available"
 #endif
 
 namespace Hdfs {

@@ -33,6 +33,7 @@
 
 #include <string>
 #include <sstream>
+#include <limits>
 
 #include "Exception.h"
 #include "ExceptionInternal.h"

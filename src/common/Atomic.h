@@ -30,7 +30,7 @@
 
 #include "platform.h"
 
-#ifdef NEED_BOOST
+#if defined(NEED_BOOST) && defined(HAVE_BOOST_ATOMIC)
 
 #include <boost/atomic.hpp>
 
@@ -42,7 +42,7 @@ using boost::atomic;
 }
 }
 
-#else
+#elif defined(HAVE_STD_ATOMIC)
 
 #include <atomic>
 
@@ -53,6 +53,8 @@ using std::atomic;
 
 }
 }
+#else
+#error "no atomic library is available"
 #endif
 
 #endif /* _HDFS_LIBHDFS3_COMMON_ATOMIC_H_ */
