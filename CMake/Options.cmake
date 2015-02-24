@@ -19,6 +19,9 @@ ELSE(ENABLE_DEBUG STREQUAL ON)
         STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 ENDIF(ENABLE_DEBUG STREQUAL ON)
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing")
+
 IF(ENABLE_COVERAGE STREQUAL ON)
     INCLUDE(CodeCoverage)
 ENDIF(ENABLE_COVERAGE STREQUAL ON)
