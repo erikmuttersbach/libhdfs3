@@ -162,8 +162,9 @@ public:
      * RuntimeExceptions:
      * @throw UnsupportedOperationException if append is not supported
      */
-    virtual shared_ptr<LocatedBlock> append(const std::string & src, const std::string & clientName)
-    /* throw (AccessControlException,
+    virtual std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus>> append(
+        const std::string& src, const std::string& clientName)
+        /* throw (AccessControlException,
              DSQuotaExceededException, FileNotFoundException,
              SafeModeException, UnresolvedLinkException, HdfsIOException) */ = 0;
 
@@ -377,14 +378,17 @@ public:
      *
      * @param src  existing file
      * @param size  the target size
-     * @param lastBlockFile   the temporary copy of the last block
      * @param clientName name of the current client.
+     *
+     * @return true if and client does not need to wait for block recovery,
+     * false if client needs to wait for block recovery.
+     *
      * @throws HdfsIOException if some arguments are invalid
      * @throws UnresolvedLinkException if <code>f</code>
      *           contains a symlink
      */
-    virtual void truncate(const std::string & src, int64_t size,
-                          const std::string & lastBlockFile, const std::string & clientName)
+    virtual bool truncate(const std::string & src, int64_t size,
+                          const std::string & clientName)
     /* throw (HdfsIOException, UnresolvedLinkException) */ = 0;
 
     /**

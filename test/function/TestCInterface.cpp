@@ -393,7 +393,7 @@ TEST_F(TestCInterface, TestOpenFile_Success) {
     file = hdfsOpenFile(fs, BASE_DIR"/testOpenFile", O_WRONLY, 0, 0, 0);
     ASSERT_TRUE(file != NULL);
     another = hdfsOpenFile(fs, BASE_DIR"/testOpenFile", O_WRONLY | O_APPEND, 0, 0, 0);
-    EXPECT_TRUE(another == NULL && EACCES == errno);
+    EXPECT_TRUE(another == NULL && EBUSY == errno);
     EXPECT_EQ(0, hdfsCloseFile(fs, file));
 }
 
@@ -1274,38 +1274,41 @@ TEST_F(TestCInterface, TestFlushAndSync_Success) {
 
 TEST_F(TestCInterface, TestTruncate_InvalidInput) {
     int err;
-    char buf[10240];
+    int shouldWait;
+    std::vector<char> buf(10240);
+    int bufferSize = buf.size();
     hdfsFile out = NULL;
     out = hdfsOpenFile(fs, BASE_DIR"/testTruncate", O_WRONLY, 0, 0, 2048);
     ASSERT_TRUE(out != NULL);
-    Hdfs::FillBuffer(buf, sizeof(buf), 0);
-    EXPECT_TRUE(sizeof(buf) == hdfsWrite(fs, out, buf, sizeof(buf)));
+    Hdfs::FillBuffer(&buf[0], bufferSize, 0);
+    EXPECT_TRUE(bufferSize == hdfsWrite(fs, out, &buf[0], bufferSize));
     err = hdfsCloseFile(fs, out);
     EXPECT_EQ(0, err);
     //test invalid input
-    err = hdfsTruncate(NULL, BASE_DIR"/testTruncate", 1);
+    err = hdfsTruncate(NULL, BASE_DIR"/testTruncate", 1, &shouldWait);
     EXPECT_TRUE(0 != err && EINVAL == errno);
-    err = hdfsTruncate(fs, NULL, 1);
+    err = hdfsTruncate(fs, NULL, 1, &shouldWait);
     EXPECT_TRUE(0 != err && EINVAL == errno);
-    err = hdfsTruncate(fs, "", 1);
+    err = hdfsTruncate(fs, "", 1, &shouldWait);
     EXPECT_TRUE(0 != err && EINVAL == errno);
-    err = hdfsTruncate(fs, "NOTEXIST", 1);
-    EXPECT_TRUE(-1 == err && (EINVAL == errno || ENOTSUP == errno));
-    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", sizeof(buf) + 1);
+    err = hdfsTruncate(fs, "NOTEXIST", 1, &shouldWait);
+    EXPECT_TRUE(-1 == err && (ENOENT == errno || ENOTSUP == errno));
+    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", bufferSize + 1, &shouldWait);
     EXPECT_TRUE(0 != err && (EINVAL == errno || ENOTSUP == errno));
-    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", -1);
+    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", -1, &shouldWait);
     EXPECT_TRUE(0 != err && (EINVAL == errno || ENOTSUP == errno));
     out = hdfsOpenFile(fs, BASE_DIR"/testTruncate", O_WRONLY | O_APPEND, 0,
                        0, 0);
     ASSERT_TRUE(out != NULL);
-    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", 1);
-    EXPECT_TRUE(0 != err && (EACCES == errno || ENOTSUP == errno));
+    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", 1, &shouldWait);
+    EXPECT_TRUE(0 != err && (EBUSY == errno || ENOTSUP == errno));
     err = hdfsCloseFile(fs, out);
     EXPECT_EQ(0, err);
 }
 
 TEST_F(TestCInterface, TestTruncate_Success) {
-    int err = hdfsTruncate(fs, "NOTEXIST", 1);
+    int shouldWait;
+    int err = hdfsTruncate(fs, "NOTEXIST", 1, &shouldWait);
 
     if (-1 == err && ENOTSUP == errno) {
         return;
@@ -1323,8 +1326,9 @@ TEST_F(TestCInterface, TestTruncate_Success) {
     err = hdfsCloseFile(fs, out);
     EXPECT_EQ(0, err);
     //test truncate to the end of file
-    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", buf.size());
+    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", buf.size(), &shouldWait);
     EXPECT_EQ(0, err);
+    EXPECT_FALSE(shouldWait);
     out = hdfsOpenFile(fs, BASE_DIR"/testTruncate", O_WRONLY | O_APPEND, 0, 0,
                        0);
     ASSERT_TRUE(out != NULL);
@@ -1336,8 +1340,9 @@ TEST_F(TestCInterface, TestTruncate_Success) {
     EXPECT_EQ(fileLength, GetFileLength(fs, BASE_DIR"/testTruncate"));
     EXPECT_TRUE(CheckFileContent(fs, BASE_DIR"/testTruncate", fileLength, 0));
     //test truncate to the block boundary
-    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", blockSize);
+    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", blockSize, &shouldWait);
     EXPECT_EQ(0, err);
+    EXPECT_FALSE(shouldWait);
     EXPECT_EQ(blockSize, GetFileLength(fs, BASE_DIR"/testTruncate"));
     EXPECT_TRUE(CheckFileContent(fs, BASE_DIR"/testTruncate", blockSize, 0));
     fileLength = blockSize;
@@ -1352,14 +1357,19 @@ TEST_F(TestCInterface, TestTruncate_Success) {
     EXPECT_EQ(fileLength, GetFileLength(fs, BASE_DIR"/testTruncate"));
     EXPECT_TRUE(CheckFileContent(fs, BASE_DIR"/testTruncate", fileLength, 0));
     //test truncate to 1
-    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", 1);
+    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", 1, &shouldWait);
     EXPECT_EQ(0, err);
+    EXPECT_TRUE(shouldWait);
     fileLength = 1;
+
+    do {
+        out = hdfsOpenFile(fs, BASE_DIR "/testTruncate", O_WRONLY | O_APPEND, 0,
+                           0, 0);
+    } while (out == NULL && errno == EBUSY);
+
+    ASSERT_TRUE(out != NULL);
     EXPECT_EQ(fileLength, GetFileLength(fs, BASE_DIR"/testTruncate"));
     EXPECT_TRUE(CheckFileContent(fs, BASE_DIR"/testTruncate", 1, 0));
-    out = hdfsOpenFile(fs, BASE_DIR"/testTruncate", O_WRONLY | O_APPEND, 0,
-                       0, 0);
-    ASSERT_TRUE(out != NULL);
     Hdfs::FillBuffer(&buf[0], buf.size() - 1, fileLength);
     EXPECT_EQ(buf.size() - 1,  hdfsWrite(fs, out, &buf[0], buf.size() - 1));
     fileLength += buf.size() - 1;
@@ -1368,8 +1378,9 @@ TEST_F(TestCInterface, TestTruncate_Success) {
     EXPECT_EQ(fileLength, GetFileLength(fs, BASE_DIR"/testTruncate"));
     EXPECT_TRUE(CheckFileContent(fs, BASE_DIR"/testTruncate", fileLength, 0));
     //test truncate to 0
-    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", 0);
+    err = hdfsTruncate(fs, BASE_DIR"/testTruncate", 0, &shouldWait);
     EXPECT_EQ(0, err);
+    EXPECT_FALSE(shouldWait);
     fileLength = 0;
     EXPECT_EQ(fileLength, GetFileLength(fs, BASE_DIR"/testTruncate"));
     out = hdfsOpenFile(fs, BASE_DIR"/testTruncate", O_WRONLY | O_APPEND, 0, 0,

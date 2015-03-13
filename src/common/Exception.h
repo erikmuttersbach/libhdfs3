@@ -357,6 +357,20 @@ public:
     static const char * ReflexName;
 };
 
+class HadoopIllegalArgumentException : public InvalidParameter {
+public:
+    HadoopIllegalArgumentException(const std::string& arg, const char* file,
+                                   int line, const char* stack)
+        : InvalidParameter(arg, file, line, stack) {
+    }
+
+    ~HadoopIllegalArgumentException() throw() {
+    }
+
+public:
+    static const char* ReflexName;
+};
+
 class InvalidPath: public HdfsException {
 public:
     InvalidPath(const std::string & arg, const char * file, int line,
@@ -506,6 +520,20 @@ public:
 
 public:
     static const char * ReflexName;
+};
+
+class RecoveryInProgressException : public HdfsException {
+ public:
+  RecoveryInProgressException(const std::string & arg, const char * file,
+                              int line, const char * stack)
+      : HdfsException(arg, file, line, stack) {
+  }
+
+  ~RecoveryInProgressException() throw () {
+  }
+
+ public:
+  static const char * ReflexName;
 };
 
 }

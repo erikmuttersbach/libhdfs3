@@ -240,11 +240,13 @@ public:
 
     /**
      * Truncate the file in the indicated path to the indicated size.
-     * @param path The path we will find the file to be truncated.
-     * @param size the position we will truncate to.
-     * @throw IOException
+     * @param path The path to the file to be truncated
+     * @param size The size the file is to be truncated to
+     *
+     * @return true if and client does not need to wait for block recovery,
+     * false if client needs to wait for block recovery.
      */
-    void truncate(const char * path, int64_t size, FileSystem & fs);
+    bool truncate(const char * path, int64_t size);
 
     /**
      * Get a valid Delegation Token.
@@ -316,7 +318,8 @@ public:
      * @param src path of the file being created.
      * @return return the last partial block if any
      */
-    shared_ptr<LocatedBlock> append(const std::string & src);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > append(
+        const std::string& src);
 
     /**
      * The client can give up on a block by calling abandonBlock().

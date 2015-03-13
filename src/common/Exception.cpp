@@ -80,6 +80,12 @@ const char * RpcNoSuchMethodException::ReflexName = "org.apache.hadoop.ipc.RpcNo
 
 const char * InvalidParameter::ReflexName = "java.lang.IllegalArgumentException";
 
+const char *HadoopIllegalArgumentException::ReflexName =
+    "org.apache.hadoop.HadoopIllegalArgumentException";
+
+const char *RecoveryInProgressException::ReflexName =
+    "org.apache.hadoop.hdfs.protocol.RecoveryInProgressException";
+
 HdfsException::HdfsException(const std::string & arg, const char * file,
                              int line, const char * stack) :
     std::runtime_error(arg) {

@@ -87,6 +87,7 @@ message AppendRequestProto {
 
 message AppendResponseProto {
   optional LocatedBlockProto block = 1;
+  optional HdfsFileStatusProto stat = 2;
 }
 
 message SetReplicationRequestProto {
@@ -179,12 +180,12 @@ message ConcatResponseProto { // void response
 
 message TruncateRequestProto {
   required string src = 1;
-  required uint64 size = 2;
-  required string lastBlockFile = 3;
-  required string clientName = 4;
+  required uint64 newLength = 2;
+  required string clientName = 3;
 }
 
-message TruncateResponseProto { // void response
+message TruncateResponseProto {
+  required bool result = 1;
 }
 
 message GetLeaseRequestProto {

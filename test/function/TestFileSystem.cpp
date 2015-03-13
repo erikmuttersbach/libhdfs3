@@ -223,6 +223,8 @@ TEST_F(TestFileSystem, truncate) {
         fs->truncate("NOTEXIST", 20);
     } catch (RpcNoSuchMethodException & e) {
         return;
+    } catch (UnsupportedOperationException & e) {
+        return;
     } catch (...) {
     }
 
@@ -230,7 +232,7 @@ TEST_F(TestFileSystem, truncate) {
     EXPECT_THROW(fs->truncate(BASE_DIR"description", 20), HdfsIOException);
     fs->connect();
     EXPECT_THROW(fs->truncate("", 20), InvalidParameter);
-    EXPECT_THROW(fs->truncate(BASE_DIR"mm", 20), InvalidParameter);
+    EXPECT_THROW(fs->truncate(BASE_DIR"mm", 20), FileNotFoundException);
     EXPECT_NO_THROW(os.open(*fs, BASE_DIR"testTruncate", Create, 0644, false, 0, 2048));
     EXPECT_NO_THROW(os.close());
     EXPECT_THROW(fs->truncate(BASE_DIR"testTruncate", 20), InvalidParameter);

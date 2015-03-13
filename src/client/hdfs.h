@@ -612,12 +612,14 @@ int hdfsChmod(hdfsFS fs, const char * path, short mode);
 int hdfsUtime(hdfsFS fs, const char * path, tTime mtime, tTime atime);
 
 /**
- * hdfsTruncate - truncate file to given position.
+ * hdfsTruncate - Truncate the file in the indicated path to the indicated size.
  * @param fs The configured filesystem handle.
  * @param path the path to the file.
  * @param pos the position the file will be truncated to.
+ * @param shouldWait output value, true if and client does not need to wait for block recovery,
+ * false if client needs to wait for block recovery.
  */
-int hdfsTruncate(hdfsFS fs, const char * path, tOffset pos);
+int hdfsTruncate(hdfsFS fs, const char * path, tOffset pos, int * shouldWait);
 
 /**
  * Get a delegation token from namenode.

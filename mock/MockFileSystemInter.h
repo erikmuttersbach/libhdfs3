@@ -70,13 +70,14 @@ public:
 	MOCK_CONST_METHOD0(getWorkingDirectory, std::string());
 	MOCK_METHOD1(exist, bool(const char * path));
 	MOCK_METHOD0(getFsStats, Hdfs::FileSystemStats());
-	MOCK_METHOD3(truncate, void(const char * src, int64_t size, Hdfs::FileSystem &));
+	MOCK_METHOD2(truncate, bool(const char * src, int64_t size));
 	MOCK_METHOD1(getDelegationToken, std::string(const char * renewer));
 	MOCK_METHOD0(getDelegationToken, std::string());
 	MOCK_METHOD1(renewDelegationToken, int64_t(const std::string & token));
 	MOCK_METHOD1(cancelDelegationToken, void(const std::string & token));
 	MOCK_METHOD6(create, void(const std::string & src, const Hdfs::Permission & masked, int flag, bool createParent, short replication, int64_t blockSize));
-	MOCK_METHOD1(append, Hdfs::Internal::shared_ptr<Hdfs::Internal::LocatedBlock>(const std::string & src));
+	MOCK_METHOD1(append, std::pair<Hdfs::Internal::shared_ptr<Hdfs::Internal::LocatedBlock>,
+	             Hdfs::Internal::shared_ptr<Hdfs::FileStatus> >(const std::string & src));
 	MOCK_METHOD2(abandonBlock, void(const Hdfs::Internal::ExtendedBlock & b, const std::string & srcr));
 	MOCK_METHOD3(addBlock, Hdfs::Internal::shared_ptr<Hdfs::Internal::LocatedBlock>(const std::string & src,
 					const Hdfs::Internal::ExtendedBlock * previous,

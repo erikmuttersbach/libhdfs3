@@ -89,6 +89,9 @@ static void LeaseRenew(int flag) {
     fileinfo.setLength(1024);
     shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
     lastBlock->setNumBytes(0);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus.first = lastBlock;
+    lastBlockWithStatus.second = shared_ptr<FileStatus>(new FileStatus(fileinfo));
     MockNamenodeStub stub;
     SessionConfig sconf(conf);
     shared_ptr<MockFileSystemInter> myfs(new MockFileSystemInter());
@@ -97,8 +100,7 @@ static void LeaseRenew(int flag) {
     OutputStreamImpl leaseous;
 
     if (flag & Append) {
-        EXPECT_CALL(*myfs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
-        EXPECT_CALL(*myfs, append(_)).Times(1).WillOnce(Return(lastBlock));
+        EXPECT_CALL(*myfs, append(_)).Times(1).WillOnce(Return(lastBlockWithStatus));
     } else {
         EXPECT_CALL(*myfs, create(_, _, _, _, _, _)).Times(1);
     }
@@ -124,12 +126,14 @@ static void heartBeatSender(int flag) {
     const SessionConfig sessionConf(conf);
     shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
     lastBlock->setNumBytes(0);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus.first = lastBlock;
+    lastBlockWithStatus.second = shared_ptr<FileStatus>(new FileStatus(fileinfo));
     EXPECT_CALL(*fs, getStandardPath(_)).Times(1).WillOnce(Return("/testheartBeat"));
     EXPECT_CALL(*fs, getConf()).Times(1).WillOnce(ReturnRef(sessionConf));
 
     if (flag & Append) {
-        EXPECT_CALL(*fs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
-        EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlock));
+        EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlockWithStatus));
     } else {
         EXPECT_CALL(*fs, create(_, _, _, _, _, _)).Times(1);
     }
@@ -165,12 +169,14 @@ static void heartBeatSenderThrow(int flag) {
     shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
     HdfsIOException e("test", "test", 3, "test");
     lastBlock->setNumBytes(0);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus.first = lastBlock;
+    lastBlockWithStatus.second = shared_ptr<FileStatus>(new FileStatus(fileinfo));
     EXPECT_CALL(*fs, getStandardPath(_)).Times(1).WillOnce(Return("/testheartBeat"));
     EXPECT_CALL(*fs, getConf()).Times(1).WillOnce(ReturnRef(sessionConf));
 
     if (flag & Append) {
-        EXPECT_CALL(*fs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
-        EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlock));
+        EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlockWithStatus));
     } else {
         EXPECT_CALL(*fs, create(_, _, _, _, _, _)).Times(1);
     }
@@ -256,10 +262,12 @@ TEST_F(TestOutputStream, registerForAppend_Success) {
     fileinfo.setLength(1024);
     shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
     lastBlock->setNumBytes(0);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus.first = lastBlock;
+    lastBlockWithStatus.second = shared_ptr<FileStatus>(new FileStatus(fileinfo));
     EXPECT_CALL(*fs, getStandardPath(_)).Times(1).WillOnce(Return("/testregiester"));
     EXPECT_CALL(*fs, getConf()).Times(1).WillOnce(ReturnRef(sessionConf));
-    EXPECT_CALL(*fs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
-    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlock));
+    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlockWithStatus));
     EXPECT_CALL(GetMockLeaseRenewer(), StartRenew(_)).Times(1);
     EXPECT_CALL(GetMockLeaseRenewer(), StopRenew(_)).Times(1);
     EXPECT_NO_THROW(ous.open(shared_ptr<FileSystemInter>(fs), "testregiester", Append, 0644, false, 0, 0));
@@ -290,10 +298,12 @@ TEST_F(TestOutputStream, openForAppend_Success) {
     fileinfo.setLength(1024);
     shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
     lastBlock->setNumBytes(0);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus.first = lastBlock;
+    lastBlockWithStatus.second = shared_ptr<FileStatus>(new FileStatus(fileinfo));
     EXPECT_CALL(*fs, getStandardPath(_)).Times(1).WillOnce(Return("/testopen"));
     EXPECT_CALL(*fs, getConf()).Times(1).WillOnce(ReturnRef(sessionConf));
-    EXPECT_CALL(*fs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
-    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlock));
+    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlockWithStatus));
     EXPECT_CALL(GetMockLeaseRenewer(), StartRenew(_)).Times(1);
     EXPECT_CALL(GetMockLeaseRenewer(), StopRenew(_)).Times(1);
     EXPECT_NO_THROW(ous.open(shared_ptr<FileSystemInter>(fs), "testopen", Append, 0644, false, 0, 0));
@@ -309,11 +319,8 @@ TEST_F(TestOutputStream, openForAppend_Fail) {
     FileStatus fileinfo;
     fileinfo.setBlocksize(2048);
     fileinfo.setLength(1024);
-    shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
-    lastBlock->setNumBytes(0);
     EXPECT_CALL(*fs, getStandardPath(_)).Times(1).WillOnce(Return("/testopen"));
     EXPECT_CALL(*fs, getConf()).Times(1).WillOnce(ReturnRef(sessionConf));
-    EXPECT_CALL(*fs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
     EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Throw(FileNotFoundException("test", "test", 2, "test")));
     EXPECT_THROW(ous.open(shared_ptr<FileSystemInter>(fs), "testopen", Append, 0644, false, 0, 0), FileNotFoundException);
 }
@@ -331,10 +338,12 @@ TEST_F(TestOutputStream, append_Success) {
     const SessionConfig sessionConf(conf);
     shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
     lastBlock->setNumBytes(0);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus.first = lastBlock;
+    lastBlockWithStatus.second = shared_ptr<FileStatus>(new FileStatus(fileinfo));
     EXPECT_CALL(*fs, getStandardPath(_)).Times(1).WillOnce(Return("/testopen"));
     EXPECT_CALL(*fs, getConf()).Times(1).WillOnce(ReturnRef(sessionConf));
-    EXPECT_CALL(*fs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
-    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlock));
+    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlockWithStatus));
     EXPECT_CALL(GetMockLeaseRenewer(), StartRenew(_)).Times(1);
     EXPECT_CALL(GetMockLeaseRenewer(), StopRenew(_)).Times(1);
     EXPECT_NO_THROW(ous.open(shared_ptr<FileSystemInter>(fs), "testopen", Create | Append, 0644, false, 3, 2048));
@@ -365,10 +374,12 @@ TEST_F(TestOutputStream, flush_Success) {
     shared_ptr<LocatedBlock> lastBlock(new LocatedBlock);
     HdfsIOException e("test", "test", 3, "test");
     lastBlock->setNumBytes(0);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus.first = lastBlock;
+    lastBlockWithStatus.second = shared_ptr<FileStatus>(new FileStatus(fileinfo));
     EXPECT_CALL(*fs, getStandardPath(_)).Times(1).WillOnce(Return("/testflush"));
     EXPECT_CALL(*fs, getConf()).Times(1).WillOnce(ReturnRef(sessionConf));
-    EXPECT_CALL(*fs, getFileStatus(_)).Times(1).WillOnce(Return(fileinfo));
-    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlock));
+    EXPECT_CALL(*fs, append(_)).Times(1).WillOnce(Return(lastBlockWithStatus));
     EXPECT_CALL(GetMockLeaseRenewer(), StartRenew(_)).Times(1);
     EXPECT_CALL(GetMockLeaseRenewer(), StopRenew(_)).Times(1);
     EXPECT_NO_THROW(ous.open(shared_ptr<FileSystemInter>(fs), "testflush", Create | Append, 0644, false, 3, 1024 * 1024));

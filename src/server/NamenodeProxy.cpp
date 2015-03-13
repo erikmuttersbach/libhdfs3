@@ -239,13 +239,13 @@ void NamenodeProxy::create(const std::string & src, const Permission & masked,
     NAMENODE_HA_RETRY_END();
 }
 
-shared_ptr<LocatedBlock> NamenodeProxy::append(const std::string & src,
-        const std::string & clientName) {
+std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> >
+NamenodeProxy::append(const std::string& src, const std::string& clientName) {
     NAMENODE_HA_RETRY_BEGIN();
     return namenode->append(src, clientName);
     NAMENODE_HA_RETRY_END();
     assert(!"should not reach here");
-    return shared_ptr<LocatedBlock>();
+    return std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> >();
 }
 
 bool NamenodeProxy::setReplication(const std::string & src, short replication) {
@@ -333,10 +333,10 @@ void NamenodeProxy::concat(const std::string & trg,
 }
 */
 
-void NamenodeProxy::truncate(const std::string & src, int64_t size,
-                             const std::string & lastBlockFile, const std::string & clientName) {
+bool NamenodeProxy::truncate(const std::string & src, int64_t size,
+                             const std::string & clientName) {
     NAMENODE_HA_RETRY_BEGIN();
-    namenode->truncate(src, size, lastBlockFile, clientName);
+    return namenode->truncate(src, size, clientName);
     NAMENODE_HA_RETRY_END();
 }
 

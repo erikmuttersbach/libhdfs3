@@ -254,10 +254,15 @@ public:
 static void handleException(Hdfs::exception_ptr error) {
     try {
         Hdfs::rethrow_exception(error);
+
+#ifndef NDEBUG
+        LOG(Hdfs::Internal::LOG_ERROR, "Handle Exception: %s",
+            Hdfs::Internal::GetExceptionDetail(error));
+#endif
     } catch (Hdfs::AccessControlException &) {
         errno = EACCES;
     } catch (Hdfs::AlreadyBeingCreatedException &) {
-        errno = EACCES;
+        errno = EBUSY;
     } catch (Hdfs::ChecksumException &) {
         errno = EIO;
     } catch (Hdfs::DSQuotaExceededException &) {
@@ -284,6 +289,8 @@ static void handleException(Hdfs::exception_ptr error) {
         errno = EPERM;
     } catch (const Hdfs::HdfsTimeoutException &) {
         errno = EIO;
+    } catch (Hdfs::HadoopIllegalArgumentException &) {
+        errno = EINVAL;
     } catch (Hdfs::InvalidParameter &) {
         errno = EINVAL;
     } catch (Hdfs::InvalidPath &) {
@@ -306,10 +313,14 @@ static void handleException(Hdfs::exception_ptr error) {
         errno = EIO;
     } catch (Hdfs::RpcNoSuchMethodException &) {
         errno = ENOTSUP;
+    } catch (Hdfs::UnsupportedOperationException &) {
+        errno = ENOTSUP;
     } catch (Hdfs::SaslException &) {
         errno = EACCES;
     } catch (Hdfs::NameNodeStandbyException &) {
         errno = EIO;
+    } catch (Hdfs::RecoveryInProgressException &){
+        errno = EBUSY;
     } catch (Hdfs::HdfsIOException &) {
         LOG(Hdfs::Internal::LOG_ERROR, "Handle Exception: %s", Hdfs::Internal::GetExceptionDetail(error));
         errno = EIO;
@@ -1214,11 +1225,11 @@ int hdfsUtime(hdfsFS fs, const char * path, tTime mtime, tTime atime) {
     return -1;
 }
 
-int hdfsTruncate(hdfsFS fs, const char * path, tOffset pos) {
-    PARAMETER_ASSERT(fs && path && strlen(path) > 0 && pos >= 0, -1, EINVAL);
+int hdfsTruncate(hdfsFS fs, const char * path, tOffset pos, int * shouldWait) {
+    PARAMETER_ASSERT(fs && path && strlen(path) > 0 && pos >= 0 && shouldWait, -1, EINVAL);
 
     try {
-        fs->getFilesystem().truncate(path, pos);
+        *shouldWait = !fs->getFilesystem().truncate(path, pos);
         return 0;
     } catch (const std::bad_alloc & e) {
         SetConstErrorMessage("Out of memory");

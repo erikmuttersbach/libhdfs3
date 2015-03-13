@@ -51,8 +51,8 @@ public:
                 const std::string & clientName, int flag, bool createParent,
                 short replication, int64_t blockSize);
 
-    shared_ptr<LocatedBlock> append(const std::string & src,
-                                    const std::string & clientName);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > append(
+        const std::string& src, const std::string& clientName);
 
     bool setReplication(const std::string & src, short replication);
 
@@ -84,8 +84,8 @@ public:
 
     void concat(const std::string & trg, const std::vector<std::string> & srcs);
 
-    void truncate(const std::string & src, int64_t size,
-                  const std::string & lastBlockFile, const std::string & clientName);
+    bool truncate(const std::string & src, int64_t size,
+                  const std::string & clientName);
 
     void getLease(const std::string & src, const std::string & clientName);
 

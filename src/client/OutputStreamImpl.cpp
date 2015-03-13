@@ -140,8 +140,16 @@ void OutputStreamImpl::computePacketChunkSize() {
 
 void OutputStreamImpl::initAppend() {
     FileStatus fileInfo;
-    fileInfo =  filesystem->getFileStatus(this->path.c_str());
-    lastBlock = filesystem->append(this->path);
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > lastBlockWithStatus;
+    lastBlockWithStatus = filesystem->append(this->path);
+    lastBlock = lastBlockWithStatus.first;
+
+    if (lastBlockWithStatus.second) {
+        fileInfo = *lastBlockWithStatus.second;
+    } else {
+        fileInfo = filesystem->getFileStatus(this->path.c_str());
+    }
+
     closed = false;
 
     try {

@@ -241,11 +241,13 @@ public:
 
     /**
      * Truncate the file in the indicated path to the indicated size.
-     * @param src The path we will find the file to be truncated.
-     * @param size the position we will truncate to.
-     * @throw IOException
+     * @param src The path to the file to be truncated
+     * @param size The size the file is to be truncated to
+     *
+     * @return true if and client does not need to wait for block recovery,
+     * false if client needs to wait for block recovery.
      */
-    void truncate(const char * src, int64_t size);
+    bool truncate(const char * src, int64_t size);
 
     /**
      * Get a valid Delegation Token.

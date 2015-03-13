@@ -555,40 +555,15 @@ FileSystemStats FileSystemImpl::getFsStats() {
     return FileSystemStats(retval[0], retval[1], retval[2]);
 }
 
-static std::string ConstructTempFilePath(const std::string & path, const std::string clientName) {
-    std::stringstream ss;
-    ss.imbue(std::locale::classic());
-    srand((unsigned int) time(NULL));
-    static atomic<uint32_t> count(0);
-    std::vector<std::string> components = StringSplit(path, "/");
-    ss << '/';
-
-    for (size_t i = components.size(); i > 0; --i) {
-        if (!components[i - 1].empty()) {
-            components[i - 1].clear();
-            break;
-        }
-    }
-
-    for (size_t i = 0; i < components.size(); ++i) {
-        if (!components[i].empty()) {
-            ss << components[i] << '/';
-        }
-    }
-
-    ss << "._client_" << clientName << "_random_" << rand()
-       << "_count_" << ++count << "_tid_" << pthread_self()
-       << "_TRUNCATE_TMP";
-    return ss.str();
-}
-
 /**
  * Truncate the file in the indicated path to the indicated size.
- * @param path The path we will find the file to be truncated.
- * @param size the position we will truncate to.
- * @throw IOException
+ * @param path The path to the file to be truncated
+ * @param size The size the file is to be truncated to
+ *
+ * @return true if and client does not need to wait for block recovery,
+ * false if client needs to wait for block recovery.
  */
-void FileSystemImpl::truncate(const char * path, int64_t size, FileSystem & fs) {
+bool FileSystemImpl::truncate(const char * path, int64_t size) {
     LOG(DEBUG1, "truncate file %s to length %" PRId64, path, size);
 
     if (!nn) {
@@ -600,87 +575,8 @@ void FileSystemImpl::truncate(const char * path, int64_t size, FileSystem & fs) 
     }
 
     std::string absPath = getStandardPath(path);
-    nn->getLease(absPath, clientName);
-    std::string temp;
-    exception_ptr e;
 
-    try {
-        do {
-            FileStatus status = getFileStatus(absPath.c_str());
-            int64_t len = status.getLength();
-            int64_t blockSize = status.getBlockSize();
-            int replication = status.getReplication();
-
-            if (size > len) {
-                THROW(InvalidParameter,
-                      "Invalid input: size is larger than the file length.");
-            } else if (size == len) {
-                break;
-            }
-
-            if (status.isDirectory() || status.isSymlink()) {
-                THROW(InvalidParameter,
-                      "Invalid input: cannot truncate a directory or a symbol link.");
-            }
-
-            if (size % blockSize != 0) {
-                temp = ConstructTempFilePath(absPath, clientName);
-                OutputStream os;
-                InputStream is;
-                os.open(fs, temp.c_str(), Create, 0400, true, replication,
-                        blockSize);
-                is.open(fs, path, true);
-                is.seek(size / blockSize * blockSize);
-                std::vector<char> buffer(1 * 1024 * 1024);
-                int64_t batch, todo = size % blockSize;
-
-                while (todo > 0) {
-                    batch = todo < static_cast<int64_t>(buffer.size()) ?
-                            todo : buffer.size();
-                    batch = is.read(&buffer[0], batch);
-                    os.append(&buffer[0], batch);
-                    todo -= batch;
-                }
-
-                os.close();
-                is.close();
-            }
-
-            nn->truncate(absPath, size,
-                         temp.empty() ? "" : getStandardPath(temp.c_str()),
-                         clientName);
-        } while (0);
-    } catch (const std::exception &) {
-        e = current_exception();
-    }
-
-    try {
-        nn->releaseLease(absPath, clientName);
-    } catch (const HdfsException & e) {
-        LOG(WARNING,
-            "Truncate: failed to release lease of file %s on client %s since:\n %s.",
-            absPath.c_str(), clientName.c_str(), GetExceptionDetail(e));
-    } catch (const std::exception & e) {
-        LOG(WARNING,
-            "Truncate: failed to release lease of file %s on client %s since:\n %s.",
-            absPath.c_str(), clientName.c_str(), e.what());
-    }
-
-    try {
-        if (!temp.empty()) {
-            this->deletePath(temp.c_str(), false);
-        }
-    } catch (const HdfsException & e) {
-        LOG(WARNING, "Truncate: failed to delete temporary file %s since:\n %s.",
-            temp.c_str(), GetExceptionDetail(e));
-    } catch (const std::exception & e) {
-        LOG(WARNING, "Truncate: failed to delete temporary file %s since:\n %s.",
-            temp.c_str(), e.what());
-    }
-
-    if (e != exception_ptr()) {
-        rethrow_exception(e);
-    }
+    return nn->truncate(absPath, size, clientName);
 }
 
 std::string FileSystemImpl::getDelegationToken(const char * renewer) {
@@ -740,7 +636,8 @@ void FileSystemImpl::create(const std::string & src, const Permission & masked,
                blockSize);
 }
 
-shared_ptr<LocatedBlock> FileSystemImpl::append(const std::string & src) {
+std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> >
+FileSystemImpl::append(const std::string& src) {
     if (!nn) {
         THROW(HdfsIOException, "FileSystemImpl: not connected.");
     }

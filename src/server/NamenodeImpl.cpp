@@ -112,12 +112,13 @@ void NamenodeImpl::create(const std::string & src, const Permission & masked,
     }
 }
 
-shared_ptr<LocatedBlock> NamenodeImpl::append(const std::string & src,
-        const std::string & clientName)
+std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> >
+NamenodeImpl::append(const std::string& src, const std::string& clientName)
 /* throw (AlreadyBeingCreatedException, DSQuotaExceededException,
  FileNotFoundException,
- UnresolvedLinkException, HdfsIOException) */{
+ UnresolvedLinkException, HdfsIOException) */ {
     try {
+        std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > retval;
         AppendRequestProto request;
         AppendResponseProto response;
         request.set_clientname(clientName);
@@ -125,14 +126,19 @@ shared_ptr<LocatedBlock> NamenodeImpl::append(const std::string & src,
         invoke(RpcCall(false, "append", &request, &response));
 
         if (response.has_block()) {
-            return Convert(response.block());
-        } else {
-            return shared_ptr<LocatedBlock>();
+            retval.first = Convert(response.block());
         }
+
+        if (response.has_stat()) {
+            retval.second = shared_ptr<FileStatus>(new FileStatus);
+            Convert(src, *retval.second, response.stat());
+        }
+        return retval;
     } catch (const HdfsRpcServerException & e) {
         UnWrapper < AlreadyBeingCreatedException, AccessControlException,
                   DSQuotaExceededException, FileNotFoundException,
-                  UnresolvedLinkException, HdfsIOException > unwrapper(
+                  UnresolvedLinkException, RecoveryInProgressException,
+                  HdfsIOException > unwrapper(
                       e);
         unwrapper.unwrap(__FILE__, __LINE__);
     }
@@ -350,19 +356,22 @@ bool NamenodeImpl::rename(const std::string & src, const std::string & dst)
     }
 }*/
 
-void NamenodeImpl::truncate(const std::string & src, int64_t size,
-                            const std::string & lastBlockFile, const std::string & clientName)
+bool NamenodeImpl::truncate(const std::string & src, int64_t size,
+                            const std::string & clientName)
 /* throw (HdfsIOException, UnresolvedLinkException) */{
     try {
         TruncateRequestProto request;
         TruncateResponseProto response;
         request.set_src(src);
-        request.set_size(size);
-        request.set_lastblockfile(lastBlockFile);
+        request.set_newlength(size);
         request.set_clientname(clientName);
         invoke(RpcCall(false, "truncate", &request, &response));
-    } catch (const HdfsRpcServerException & e) {
-        UnWrapper<UnresolvedLinkException, HdfsIOException> unwrapper(e);
+        return response.result();
+    } catch (const HdfsRpcServerException& e) {
+        UnWrapper<AlreadyBeingCreatedException, AccessControlException,
+                  UnresolvedLinkException, FileNotFoundException,
+                  RecoveryInProgressException, HadoopIllegalArgumentException,
+                  HdfsIOException> unwrapper(e);
         unwrapper.unwrap(__FILE__, __LINE__);
     }
 }

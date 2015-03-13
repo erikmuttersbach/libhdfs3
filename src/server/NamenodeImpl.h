@@ -54,8 +54,9 @@ public:
              NSQuotaExceededException, ParentNotDirectoryException,
              SafeModeException, UnresolvedLinkException, HdfsIOException) */;
 
-    shared_ptr<LocatedBlock> append(const std::string & src, const std::string & clientName)
-    /* throw (AccessControlException,
+    std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > append(
+        const std::string& src, const std::string& clientName)
+        /* throw (AccessControlException,
              DSQuotaExceededException, FileNotFoundException,
              SafeModeException, UnresolvedLinkException, HdfsIOException) */;
 
@@ -113,8 +114,8 @@ public:
     void concat(const std::string & trg, const std::vector<std::string> & srcs)
     /* throw (HdfsIOException, UnresolvedLinkException) */;
 
-    void truncate(const std::string & src, int64_t size,
-                  const std::string & lastBlockFile, const std::string & clientName)
+    bool truncate(const std::string & src, int64_t size,
+                  const std::string & clientName)
     /* throw (HdfsIOException, UnresolvedLinkException) */;
 
     void getLease(const std::string & src, const std::string & clientName)

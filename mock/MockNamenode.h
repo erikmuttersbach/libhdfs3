@@ -48,7 +48,8 @@ public:
     MOCK_METHOD7(create, void(const std::string & src, const Permission & masked,
           const std::string & clientName, int flag, bool createParent,
           short replication, int64_t blockSize));
-    MOCK_METHOD2(append, shared_ptr<LocatedBlock>(const std::string & src, const std::string & clientName));
+    MOCK_METHOD2(append, std::pair<shared_ptr<LocatedBlock>,
+                 shared_ptr<FileStatus> >(const std::string & src, const std::string & clientName));
     MOCK_METHOD2(setReplication, bool(const std::string & src, short replication));
     MOCK_METHOD2(setPermission, void(const std::string & src,
           const Permission & permission));
@@ -69,8 +70,8 @@ public:
     MOCK_METHOD1(reportBadBlocks, void(const std::vector<LocatedBlock> & blocks));
     MOCK_METHOD2(concat, void(const std::string & trg,
                        const std::vector<std::string> & srcs));
-    MOCK_METHOD4(truncate, void(const std::string & src, int64_t size,
-                        const std::string & lastBlockFile, const std::string & clientName));
+    MOCK_METHOD3(truncate, bool(const std::string & src, int64_t size,
+                        const std::string & clientName));
     MOCK_METHOD2(getLease, void(const std::string & src,
                         const std::string & clientName)) ;
     MOCK_METHOD2(releaseLease, void(const std::string & src,

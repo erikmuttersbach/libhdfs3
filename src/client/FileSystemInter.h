@@ -249,7 +249,7 @@ public:
      * @param size the position we will truncate to.
      * @throw IOException
      */
-    virtual void truncate(const char * src, int64_t size, FileSystem & fs) /* throw AccessControlException,
+    virtual bool truncate(const char * src, int64_t size) /* throw AccessControlException,
 	 FileNotFoundException, UnresolvedLinkException, HdfsIOException */ = 0;
 
     /**
@@ -323,7 +323,8 @@ public:
      * @param src path of the file being created.
      * @return return the last partial block if any
      */
-    virtual shared_ptr<LocatedBlock> append(const std::string & src) = 0;
+    virtual std::pair<shared_ptr<LocatedBlock>, shared_ptr<FileStatus> > append(
+        const std::string& src) = 0;
 
     /**
      * The client can give up on a block by calling abandonBlock().
