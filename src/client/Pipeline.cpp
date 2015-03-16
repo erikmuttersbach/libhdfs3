@@ -312,6 +312,7 @@ void PipelineImpl::buildForAppendOrRecovery(bool recovery) {
     lb->setPoolId(lastBlock->getPoolId());
     lb->setBlockId(lastBlock->getBlockId());
     lb->setLocations(nodes);
+    lb->setStorageIDs(storageIDs);
     lb->setNumBytes(lastBlock->getNumBytes());
     lb->setOffset(lastBlock->getOffset());
     filesystem->updatePipeline(*lastBlock, *lb, nodes, storageIDs);

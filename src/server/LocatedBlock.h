@@ -99,6 +99,11 @@ public:
     std::vector<std::string> & mutableStorageIDs() {
         return storageIDs;
     }
+
+    void setStorageIDs(const std::vector<std::string>& sid) {
+        this->storageIDs = sid;
+    }
+
 private:
     int64_t offset;
     bool corrupt;
