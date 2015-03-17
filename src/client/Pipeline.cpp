@@ -384,6 +384,7 @@ void PipelineImpl::buildForNewBlock() {
             locateNextBlock(excludedNodes);
             lastBlock->setNumBytes(0);
             nodes = lastBlock->getLocations();
+            storageIDs = lastBlock->getStorageIDs();
         } catch (const HdfsRpcException & e) {
             const char * lastBlockName = lastBlock ? lastBlock->toString().c_str() : "Null";
             LOG(LOG_ERROR,
