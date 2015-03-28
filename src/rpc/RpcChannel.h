@@ -160,7 +160,7 @@ private:
      * @throw HdfsNetworkException
      * @throw HdfsTimeout
      */
-    void sendConnectionHeader();
+    void sendConnectionHeader(const RpcAuth& auth);
 
     /**
      * Send rpc connection protocol content.

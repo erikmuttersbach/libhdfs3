@@ -80,6 +80,10 @@ public:
         return method;
     }
 
+    void setMethod(AuthMethod method) {
+        this->method = method;
+    }
+
     size_t hash_value() const;
 
     bool operator ==(const RpcAuth & other) const {

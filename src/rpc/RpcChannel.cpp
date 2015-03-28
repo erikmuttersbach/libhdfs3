@@ -261,12 +261,16 @@ void RpcChannelImpl::connect() {
     for (int i = 0; i < conf.getMaxRetryOnConnect(); ++i) {
         RpcAuth auth = key.getAuth();
 
+        if (key.hasToken()) {
+            auth.setMethod(AuthMethod::TOKEN);
+        }
+
         try {
             while (true) {
                 sock->connect(server.getHost().c_str(), server.getPort().c_str(),
                               conf.getConnectTimeout());
                 sock->setNoDelay(conf.isTcpNoDelay());
-                sendConnectionHeader();
+                sendConnectionHeader(auth);
 
                 if (auth.getProtocol() == AuthProtocol::SASL) {
                     auth = setupSaslConnection();
@@ -636,12 +640,12 @@ void RpcChannelImpl::waitForExit() {
  * |  AuthProtocol (1 byte)           |
  * +----------------------------------+
  */
-void RpcChannelImpl::sendConnectionHeader() {
+void RpcChannelImpl::sendConnectionHeader(const RpcAuth &auth) {
     WriteBuffer buffer;
     buffer.write(RPC_HEADER_MAGIC, strlen(RPC_HEADER_MAGIC));
     buffer.write(static_cast<char>(RPC_HEADER_VERSION));
     buffer.write(static_cast<char>(0));  //for future feature
-    buffer.write(static_cast<char>(key.getAuth().getProtocol()));
+    buffer.write(static_cast<char>(auth.getProtocol()));
     sock->writeFully(buffer.getBuffer(0), buffer.getDataSize(0),
                      key.getConf().getWriteTimeout());
 }
