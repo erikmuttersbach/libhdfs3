@@ -41,6 +41,10 @@ BufferedSocketReaderImpl::BufferedSocketReaderImpl(Socket & s) :
     cursor(0), size(0), sock(s), buffer(sizeof(int64_t)) {
 }
 
+BufferedSocketReaderImpl::BufferedSocketReaderImpl(Socket & s, size_t bufferSize) :
+    cursor(0), size(0), sock(s), buffer(bufferSize) {
+}
+
 int32_t BufferedSocketReaderImpl::read(char * b, int32_t s) {
     assert(s > 0 && NULL != b);
     int32_t done = s < size - cursor ? s : size - cursor;
@@ -76,6 +80,24 @@ int32_t BufferedSocketReaderImpl::readBigEndianInt32(int timeout) {
 }
 
 int32_t BufferedSocketReaderImpl::readVarint32(int timeout) {
+    if (buffer.size() == 0) {
+        try {
+            buffer.resize(sizeof(int64_t));
+            int32_t retval = readVarint32(timeout, 1);
+            assert(size == cursor);
+            buffer.resize(0);
+            return retval;
+        } catch (...) {
+            assert(size == cursor);
+            buffer.resize(0);
+            throw;
+        }
+    } else {
+        return readVarint32(timeout, buffer.size());
+    }
+}
+
+int32_t BufferedSocketReaderImpl::readVarint32(int timeout, int32_t step) {
     int32_t value;
     bool rc = false;
     int deadline = timeout;
@@ -104,7 +126,9 @@ int32_t BufferedSocketReaderImpl::readVarint32(int timeout) {
         }
 
         if (sock.poll(true, false, deadline)) {
-            size += sock.read(&buffer[size], buffer.size() - size);
+            int32_t todo = buffer.size() - size;
+            todo = todo < step ? todo : step;
+            size += sock.read(&buffer[size], todo);
         }
 
         steady_clock::time_point e = steady_clock::now();

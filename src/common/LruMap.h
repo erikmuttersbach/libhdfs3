@@ -36,7 +36,7 @@
 namespace Hdfs {
 namespace Internal {
 
-template<typename K, typename V>
+template <typename K, typename V>
 class LruMap {
 public:
     typedef K KeyType;
@@ -46,12 +46,10 @@ public:
     typedef unordered_map<K, typename ListType::iterator> MapType;
 
 public:
-    LruMap() :
-        count(0), size(1000) {
+    LruMap() : count(0), maxSize(1000) {
     }
 
-    LruMap(size_t size) :
-        count(0), size(size) {
+    LruMap(size_t size) : count(0), maxSize(size) {
     }
 
     ~LruMap() {
@@ -62,15 +60,16 @@ public:
 
     void resize(size_t s) {
         lock_guard<mutex> lock(mut);
-        size = s;
+        maxSize = s;
 
         for (size_t i = count; i > s; --i) {
             map.erase(list.back().first);
             list.pop_back();
+            --count;
         }
     }
 
-    void insert(const KeyType & key, const ValueType & value) {
+    void insert(const KeyType& key, const ValueType& value) {
         lock_guard<mutex> lock(mut);
         typename MapType::iterator it = map.find(key);
 
@@ -83,13 +82,14 @@ public:
         map[key] = list.begin();
         ++count;
 
-        if (count > size) {
+        if (count > maxSize) {
             map.erase(list.back().first);
             list.pop_back();
+            --count;
         }
     }
 
-    void erase(const KeyType & key) {
+    void erase(const KeyType& key) {
         lock_guard<mutex> lock(mut);
         typename MapType::iterator it = map.find(key);
 
@@ -100,7 +100,7 @@ public:
         }
     }
 
-    bool find(const KeyType & key, ValueType & value) {
+    bool find(const KeyType& key, ValueType& value) {
         lock_guard<mutex> lock(mut);
         typename MapType::iterator it = map.find(key);
 
@@ -115,14 +115,18 @@ public:
         return false;
     }
 
+    size_t size() {
+        lock_guard<mutex> lock(mut);
+        return count;
+    }
+
 private:
     size_t count;
-    size_t size;
+    size_t maxSize;
     ListType list;
     MapType map;
     mutex mut;
 };
-
 }
 }
 #endif /* _HDFS_LIBHDFS3_COMMON_LRU_H_ */

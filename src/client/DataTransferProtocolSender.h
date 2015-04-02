@@ -47,7 +47,9 @@ enum DataTransferOp {
     REPLACE_BLOCK = 83,
     COPY_BLOCK = 84,
     BLOCK_CHECKSUM = 85,
-    TRANSFER_BLOCK = 86
+    TRANSFER_BLOCK = 86,
+    REQUEST_SHORT_CIRCUIT_FDS = 87,
+    RELEASE_SHORT_CIRCUIT_FDS = 88
 };
 
 /**
@@ -116,6 +118,18 @@ public:
      */
     virtual void blockChecksum(const ExtendedBlock & blk,
                                const Token & blockToken);
+
+    /**
+     * Request short circuit access file descriptors from a DataNode.
+     *
+     * @param blk             The block to get file descriptors for.
+     * @param blockToken      Security token for accessing the block.
+     * @param maxVersion      Maximum version of the block data the client
+     *                          can understand.
+     */
+    virtual void requestShortCircuitFds(const ExtendedBlock blk,
+                                        const Token& blockToken,
+                                        uint32_t maxVersion);
 
 private:
     Socket & sock;

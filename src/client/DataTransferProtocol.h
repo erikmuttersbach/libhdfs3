@@ -102,6 +102,19 @@ public:
      */
     virtual void blockChecksum(const ExtendedBlock & blk,
                                const Token & blockToken) = 0;
+
+    /**
+     * Request short circuit access file descriptors from a DataNode.
+     *
+     * @param blk             The block to get file descriptors for.
+     * @param blockToken      Security token for accessing the block.
+     * @param clientName      client's name.
+     * @param maxVersion      Maximum version of the block data the client
+     *                          can understand.
+     */
+    virtual void requestShortCircuitFds(const ExtendedBlock blk,
+                                        const Token& blockToken,
+                                        uint32_t maxVersion) = 0;
 };
 
 }

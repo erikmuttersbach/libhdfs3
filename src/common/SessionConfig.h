@@ -271,6 +271,30 @@ public:
         this->useMappedFile = useMappedFile;
     }
 
+    bool isLegacyLocalBlockReader() const {
+        return legacyLocalBlockReader;
+    }
+
+    void setLegacyLocalBlockReader(bool legacyLocalBlockReader) {
+        this->legacyLocalBlockReader = legacyLocalBlockReader;
+    }
+
+    const std::string& getDomainSocketPath() const {
+        return domainSocketPath;
+    }
+
+    void setDomainSocketPath(const std::string& domainSocketPath) {
+        this->domainSocketPath = domainSocketPath;
+    }
+
+    int32_t getMaxFileDescriptorCacheSize() const {
+        return maxFileDescriptorCacheSize;
+    }
+
+    void setMaxFileDescriptorCacheSize(int32_t maxFileDescriptorCacheSize) {
+        this->maxFileDescriptorCacheSize = maxFileDescriptorCacheSize;
+    }
+
 public:
     /*
      * rpc configure
@@ -302,14 +326,17 @@ public:
     bool useMappedFile;
     bool readFromLocal;
     bool notRetryAnotherNode;
+    bool legacyLocalBlockReader;
     int32_t inputConnTimeout;
     int32_t inputReadTimeout;
     int32_t inputWriteTimeout;
     int32_t localReadBufferSize;
     int32_t maxGetBlockInfoRetry;
     int32_t maxLocalBlockInfoCacheSize;
+    int32_t maxFileDescriptorCacheSize;
     int32_t maxReadBlockRetry;
     int32_t prefetchSize;
+    std::string domainSocketPath;
 
     /*
      * OutputStream configure

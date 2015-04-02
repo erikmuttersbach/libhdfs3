@@ -106,7 +106,9 @@ public:
  */
 class BufferedSocketReaderImpl: public BufferedSocketReader {
 public:
-    BufferedSocketReaderImpl(Socket & s);
+    BufferedSocketReaderImpl(Socket& s);
+
+    BufferedSocketReaderImpl(Socket& s, size_t bufferSize);
 
     int32_t read(char * b, int32_t s);
 
@@ -119,6 +121,8 @@ public:
     bool poll(int timeout);
 
 private:
+    int32_t readVarint32(int timeout, int32_t step);
+
     //for test
     BufferedSocketReaderImpl(Socket & s, const std::vector<char> & buffer) :
         cursor(0), size(buffer.size()), sock(s), buffer(buffer) {

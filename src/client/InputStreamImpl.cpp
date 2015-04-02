@@ -47,9 +47,6 @@
 namespace Hdfs {
 namespace Internal {
 
-mutex InputStreamImpl::MutLocalBlockInforCache;
-unordered_map<uint32_t, shared_ptr<LocalBlockInforCacheType> > InputStreamImpl::LocalBlockInforCache;
-
 unordered_set<std::string> BuildLocalAddrSet() {
     unordered_set<std::string> set;
     struct ifaddrs * ifAddr = NULL;
@@ -316,56 +313,6 @@ bool InputStreamImpl::isLocalNode() {
     return retval;
 }
 
-BlockLocalPathInfo InputStreamImpl::getBlockLocalPathInfo(
-    LocalBlockInforCacheType & cache, const LocatedBlock & b) {
-    BlockLocalPathInfo retval;
-
-    try {
-        if (!cache.find(LocalBlockInforCacheKey(b.getBlockId(), b.getPoolId()),
-                        retval)) {
-            RpcAuth a = auth;
-            /*
-             * only kerberos based authentication is allowed, do not add token
-             */
-            shared_ptr<Datanode> dn = shared_ptr<Datanode>(
-                                          new DatanodeImpl(curNode.getIpAddr().c_str(),
-                                                  curNode.getIpcPort(), *conf, a));
-            dn->getBlockLocalPathInfo(b, b.getToken(), retval);
-            cache.insert(LocalBlockInforCacheKey(b.getBlockId(), b.getPoolId()),
-                         retval);
-        }
-    } catch (const HdfsIOException & e) {
-        throw;
-    } catch (const HdfsException & e) {
-        NESTED_THROW(HdfsIOException, "InputStreamImpl: Failed to get block local path information.");
-    }
-
-    return retval;
-}
-
-void InputStreamImpl::invalidCacheEntry(LocalBlockInforCacheType & cache,
-                                        const LocatedBlock & b) {
-    cache.erase(LocalBlockInforCacheKey(b.getBlockId(), b.getPoolId()));
-}
-
-LocalBlockInforCacheType & InputStreamImpl::getBlockLocalPathInfoCache(
-    uint32_t port) {
-    lock_guard<mutex> lock(MutLocalBlockInforCache);
-    unordered_map<uint32_t, shared_ptr<LocalBlockInforCacheType> >::iterator it;
-    it = LocalBlockInforCache.find(port);
-
-    if (it == LocalBlockInforCache.end()) {
-        shared_ptr<LocalBlockInforCacheType> retval;
-        retval = shared_ptr<LocalBlockInforCacheType>(
-                     new LocalBlockInforCacheType(
-                         conf->getMaxLocalBlockInfoCacheSize()));
-        LocalBlockInforCache[port] = retval;
-        return *retval;
-    } else {
-        return *(it->second);
-    }
-}
-
 void InputStreamImpl::setupBlockReader(bool temporaryDisableLocalRead) {
     bool lastReadFromLocal = false;
     exception_ptr lastException;
@@ -394,32 +341,29 @@ void InputStreamImpl::setupBlockReader(bool temporaryDisableLocalRead) {
             len = curBlock->getNumBytes() - offset;
             assert(len > 0);
 
-            if (auth.getProtocol() == AuthProtocol::NONE
-                    && !temporaryDisableLocalRead && !lastReadFromLocal
-                    && !readFromUnderConstructedBlock && localRead
-                    && isLocalNode()) {
+            if (!temporaryDisableLocalRead && !lastReadFromLocal &&
+                !readFromUnderConstructedBlock && localRead && isLocalNode()) {
                 lastReadFromLocal = true;
-                LocalBlockInforCacheType & cache = getBlockLocalPathInfoCache(
-                                                       curNode.getXferPort());
-                BlockLocalPathInfo info = getBlockLocalPathInfo(cache,
-                                          *curBlock);
-                assert(curBlock->getBlockId() == info.getBlock().getBlockId() &&
-                       curBlock->getPoolId() == info.getBlock().getPoolId());
-                LOG(DEBUG2, "%p setup local block reader for file %s from local block %s, block offset %" PRId64
-                    ", read block length %" PRId64 " end of Block %" PRId64 ", local block file path %s",
-                    this, path.c_str(), curBlock->toString().c_str(), offset, len, offset + len,
-                    info.getLocalBlockPath());
 
-                if (0 != access(info.getLocalMetaPath(), R_OK)) {
-                    invalidCacheEntry(cache, *curBlock);
-                    continue;
-                }
+                shared_ptr<ReadShortCircuitInfo> info;
+                ReadShortCircuitInfoBuilder builder(curNode, auth, *conf);
 
                 try {
-                    blockReader = shared_ptr < BlockReader
-                                  > (new LocalBlockReader(info, *curBlock, offset, verify, *conf, localReaderBuffer));
+                    info = builder.fetchOrCreate(*curBlock, curBlock->getToken());
+
+                    if (!info) {
+                        continue;
+                    }
+
+                    assert(info->isValid());
+                    blockReader = shared_ptr<BlockReader>(
+                        new LocalBlockReader(info, *curBlock, offset, verify,
+                                             *conf, localReaderBuffer));
                 } catch (...) {
-                    invalidCacheEntry(cache, *curBlock);
+                    if (info) {
+                        info->setValid(false);
+                    }
+
                     throw;
                 }
             } else {
@@ -442,7 +386,7 @@ void InputStreamImpl::setupBlockReader(bool temporaryDisableLocalRead) {
             if (lastReadFromLocal) {
                 LOG(LOG_ERROR,
                     "cannot setup block reader for Block: %s file %s on Datanode: %s.\n%s\n"
-                    "retry the same node but disable reading from local block",
+                    "retry the same node but disable read shortcircuit feature",
                     curBlock->toString().c_str(), path.c_str(),
                     curNode.formatAddress().c_str(), GetExceptionDetail(e));
                 /*

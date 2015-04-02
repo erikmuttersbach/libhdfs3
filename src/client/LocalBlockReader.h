@@ -30,10 +30,10 @@
 
 #include "BlockReader.h"
 #include "Checksum.h"
-#include "Memory.h"
-#include "server/BlockLocalPathInfo.h"
-#include "SessionConfig.h"
 #include "FileWrapper.h"
+#include "Memory.h"
+#include "ReadShortCircuitInfo.h"
+#include "SessionConfig.h"
 
 #include <vector>
 
@@ -42,7 +42,7 @@ namespace Internal {
 
 class LocalBlockReader: public BlockReader {
 public:
-    LocalBlockReader(const BlockLocalPathInfo & info,
+    LocalBlockReader(const shared_ptr<ReadShortCircuitInfo>& info,
                      const ExtendedBlock & block, int64_t offset, bool verify,
                      SessionConfig & conf, std::vector<char> & buffer);
 
@@ -94,8 +94,7 @@ private:
     shared_ptr<Checksum> checksum;
     shared_ptr<FileWrapper> dataFd;
     shared_ptr<FileWrapper> metaFd;
-    std::string dataFilePath;
-    std::string metaFilePath;
+    shared_ptr<ReadShortCircuitInfo> info;
     std::vector<char> & buffer;
     std::vector<char> metaBuffer;
 };

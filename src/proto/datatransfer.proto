@@ -157,6 +157,12 @@ enum Status {
   DT_PROTO_ERROR_EXISTS = 4;
   DT_PROTO_ERROR_ACCESS_TOKEN = 5;
   DT_PROTO_CHECKSUM_OK = 6;
+  DT_PROTO_ERROR_UNSUPPORTED = 7;
+  DT_PROTO_OOB_RESTART = 8;            // Quick restart
+  DT_PROTO_OOB_RESERVED1 = 9;          // Reserved
+  DT_PROTO_OOB_RESERVED2 = 10;         // Reserved
+  DT_PROTO_OOB_RESERVED3 = 11;         // Reserved
+  DT_PROTO_IN_PROGRESS = 12;
 }
 
 message PipelineAckProto {

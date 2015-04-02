@@ -5,7 +5,7 @@
  * Author: Zhanwei Wang
  ********************************************************************/
 /********************************************************************
- * 2014 - 
+ * 2014 -
  * open source under Apache License Version 2.0
  ********************************************************************/
 /**
@@ -37,25 +37,26 @@ namespace Mock {
 
 class MockSockSysCall: public MockSockSysCallInterface {
 public:
-	MOCK_METHOD4(recv , ssize_t (int sock, void * buffer, size_t size, int flag));
-	MOCK_METHOD4(send , ssize_t (int sock, const void * buffer, size_t size,
-					int flag));
-	MOCK_METHOD4(getaddrinfo , int (const char * __restrict host,
-					const char * __restrict port,
-					const struct addrinfo * __restrict hint,
-					struct addrinfo ** __restrict addr));
-	MOCK_METHOD1(freeaddrinfo , void (struct addrinfo * addr));
-	MOCK_METHOD3(socket , int (int family, int type, int protocol));
-	MOCK_METHOD3(connect , int (int sock, const struct sockaddr * addr,
-					socklen_t len));
-	MOCK_METHOD3(getpeername , int (int sock, struct sockaddr * __restrict peer,
-					socklen_t * __restrict len));
-	MOCK_METHOD3(fcntl , int (int sock, int flag, int value));
-	MOCK_METHOD5(setsockopt , int (int sock, int level, int optname, const void *optval,
-					socklen_t optlen));
-	MOCK_METHOD3(poll , int (struct pollfd * pfd, nfds_t size, int timeout));
-	MOCK_METHOD2(shutdown , int (int sock, int how));
-	MOCK_METHOD1(close , int (int sock));
+    MOCK_METHOD4(recv , ssize_t (int sock, void * buffer, size_t size, int flag));
+    MOCK_METHOD4(send , ssize_t (int sock, const void * buffer, size_t size,
+                    int flag));
+    MOCK_METHOD3(recvmsg , ssize_t (int socket, struct msghdr *message, int flags));
+    MOCK_METHOD4(getaddrinfo , int (const char * __restrict host,
+                    const char * __restrict port,
+                    const struct addrinfo * __restrict hint,
+                    struct addrinfo ** __restrict addr));
+    MOCK_METHOD1(freeaddrinfo , void (struct addrinfo * addr));
+    MOCK_METHOD3(socket , int (int family, int type, int protocol));
+    MOCK_METHOD3(connect , int (int sock, const struct sockaddr * addr,
+                    socklen_t len));
+    MOCK_METHOD3(getpeername , int (int sock, struct sockaddr * __restrict peer,
+                    socklen_t * __restrict len));
+    MOCK_METHOD3(fcntl , int (int sock, int flag, int value));
+    MOCK_METHOD5(setsockopt , int (int sock, int level, int optname, const void *optval,
+                    socklen_t optlen));
+    MOCK_METHOD3(poll , int (struct pollfd * pfd, nfds_t size, int timeout));
+    MOCK_METHOD2(shutdown , int (int sock, int how));
+    MOCK_METHOD1(close , int (int sock));
 };
 
 }

@@ -179,6 +179,25 @@ void DataTransferProtocolSender::blockChecksum(const ExtendedBlock & blk,
     }
 }
 
+void DataTransferProtocolSender::requestShortCircuitFds(const ExtendedBlock blk,
+                                                        const Token& blockToken,
+                                                        uint32_t maxVersion) {
+    try {
+        OpRequestShortCircuitAccessProto op;
+        BuildBaseHeader(blk, blockToken, op.mutable_header());
+        op.set_maxversion(maxVersion);
+
+        Send(sock, REQUEST_SHORT_CIRCUIT_FDS, &op, writeTimeout);
+    } catch (const HdfsCanceled& e) {
+        throw;
+    } catch (const HdfsException& e) {
+        NESTED_THROW(HdfsIOException,
+                     "DataTransferProtocolSender cannot send request "
+                     "short-circuit fds request "
+                     "to datanode %s.",
+                     datanode.c_str());
+    }
+}
 }
 }
 

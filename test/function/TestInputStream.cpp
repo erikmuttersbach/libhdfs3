@@ -385,7 +385,6 @@ static double CalculateThroughput(int64_t elapsed, int64_t size) {
 
 TEST(TestThroughput, Throughput) {
     Config conf("function-test.xml");
-    conf.set("dfs.client.read.shortcircuit", true);
     FileSystem fs(conf);
     fs.connect();
     SetupTestEnv(fs, conf);

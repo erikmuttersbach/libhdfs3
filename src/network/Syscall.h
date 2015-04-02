@@ -48,6 +48,7 @@ using ::setsockopt;
 using ::poll;
 using ::shutdown;
 using ::close;
+using ::recvmsg;
 
 }
 
