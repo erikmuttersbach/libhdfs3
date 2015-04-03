@@ -128,7 +128,8 @@ shared_ptr<ReadShortCircuitInfo> ReadShortCircuitInfoBuilder::fetchOrCreate(
 void ReadShortCircuitInfoBuilder::release(const ReadShortCircuitInfo& info) {
   if (info.isValid() && !info.isLegacy()) {
     ReadShortCircuitFDCache.insert(info.getKey(), info.getFdHolder());
-    LOG(DEBUG1, "Inserted file descriptors into cache for block %s, cache size %zu",
+    LOG(DEBUG1,
+        "Inserted file descriptors into cache for block %s, cache size %zu",
         info.formatBlockInfo().c_str(), ReadShortCircuitFDCache.size());
   }
 }

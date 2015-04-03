@@ -60,8 +60,6 @@ LocalBlockReader::LocalBlockReader(const shared_ptr<ReadShortCircuitInfo>& info,
       length(block.getNumBytes()),
       info(info),
       buffer(buffer) {
-    exception_ptr lastError;
-
     try {
         metaFd = info->getMetaFile();
         dataFd = info->getDataFile();

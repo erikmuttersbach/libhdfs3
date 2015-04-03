@@ -28,13 +28,14 @@
 #include "platform.h"
 
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #include <errno.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/types.h>
+#include <sys/un.h>
 #include <unistd.h>
 #include <vector>
 
@@ -74,7 +75,7 @@ void DomainSocketImpl::connect(const char *host, const char *port,
     addr.sun_family = AF_UNIX;
     rc = snprintf(addr.sun_path, sizeof(addr.sun_path), "%s", host);
 
-    if (rc < 0 || rc >= sizeof(addr.sun_path)) {
+    if (rc < 0 || rc >= static_cast<int>(sizeof(addr.sun_path))) {
       THROW(HdfsNetworkException, "error computing UNIX domain socket path: %s",
             remoteAddr.c_str());
     }
@@ -107,7 +108,6 @@ int32_t DomainSocketImpl::receiveFileDescriptors(int fds[], size_t nfds,
   ssize_t rc;
   struct iovec iov[1];
   struct msghdr msg;
-  struct cmsghdr hdr;
 
   iov[0].iov_base = buffer;
   iov[0].iov_len = size;
