@@ -42,7 +42,6 @@ SET(HEADER
     client/InputStream.h
     client/OutputStream.h
     client/Permission.h
-    client/Token.h
     common/Exception.h
     common/XmlConfig.h)
 
