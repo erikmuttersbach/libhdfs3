@@ -34,7 +34,6 @@
 #include "FileSystemStats.h"
 #include "Permission.h"
 #include "XmlConfig.h"
-#include "Token.h"
 
 #include <vector>
 

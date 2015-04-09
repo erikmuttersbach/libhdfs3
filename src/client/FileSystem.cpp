@@ -34,6 +34,7 @@
 #include "Hash.h"
 #include "SessionConfig.h"
 #include "Thread.h"
+#include "Token.h"
 #include "Unordered.h"
 #include "WritableUtils.h"
 
