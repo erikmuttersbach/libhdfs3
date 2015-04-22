@@ -69,6 +69,10 @@ public:
         return rpcMaxRetryOnConnect;
     }
 
+    void setRpcMaxRetryOnConnect(int32_t rpcMaxRetryOnConnect) {
+      this->rpcMaxRetryOnConnect = rpcMaxRetryOnConnect;
+    }
+
     int32_t getRpcPingTimeout() const {
         return rpcPingTimeout;
     }

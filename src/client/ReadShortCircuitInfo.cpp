@@ -144,13 +144,15 @@ BlockLocalPathInfo ReadShortCircuitInfoBuilder::getBlockLocalPathInfo(
   try {
     if (!BlockLocalPathInfoCache.find(key, retval)) {
       RpcAuth a = auth;
+      SessionConfig c = conf;
+      c.setRpcMaxRetryOnConnect(1);
 
       /*
        * only kerberos based authentication is allowed, do not add
        * token
        */
       shared_ptr<Datanode> dn = shared_ptr<Datanode>(new DatanodeImpl(
-          dnInfo.getIpAddr().c_str(), dnInfo.getIpcPort(), conf, a));
+          dnInfo.getIpAddr().c_str(), dnInfo.getIpcPort(), c, a));
       dn->getBlockLocalPathInfo(block, token, retval);
 
       BlockLocalPathInfoCache.resize(conf.getMaxLocalBlockInfoCacheSize());
