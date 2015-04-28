@@ -5,7 +5,7 @@
  * Author: Zhanwei Wang
  ********************************************************************/
 /********************************************************************
- * 2014 - 
+ * 2014 -
  * open source under Apache License Version 2.0
  ********************************************************************/
 /**
@@ -45,28 +45,29 @@ namespace Mock {
 
 class MockSockSysCallInterface {
 public:
-	virtual ~MockSockSysCallInterface() {
-	}
+    virtual ~MockSockSysCallInterface() {
+    }
 
-	virtual ssize_t recv(int sock, void * buffer, size_t size, int flag) = 0;
-	virtual ssize_t send(int sock, const void * buffer, size_t size,
-			int flag) = 0;
-	virtual int getaddrinfo(const char * __restrict host,
-			const char * __restrict port,
-			const struct addrinfo * __restrict hint,
-			struct addrinfo ** __restrict addr) = 0;
-	virtual void freeaddrinfo(struct addrinfo * addr) = 0;
-	virtual int socket(int family, int type, int protocol) = 0;
-	virtual int connect(int sock, const struct sockaddr * addr,
-			socklen_t len) = 0;
-	virtual int getpeername(int sock, struct sockaddr * __restrict peer,
-			socklen_t * __restrict len) = 0;
-	virtual int fcntl(int sock, int flag, int value) = 0;
-	virtual int setsockopt(int sock, int level, int optname, const void *optval,
-			socklen_t optlen) = 0;
-	virtual int poll(struct pollfd * pfd, nfds_t size, int timeout) = 0;
-	virtual int shutdown(int sock, int how) = 0;
-	virtual int close(int sock) = 0;
+    virtual ssize_t recv(int sock, void * buffer, size_t size, int flag) = 0;
+    virtual ssize_t send(int sock, const void * buffer, size_t size,
+            int flag) = 0;
+  virtual ssize_t recvmsg(int socket, struct msghdr *message, int flags) = 0;
+    virtual int getaddrinfo(const char * __restrict host,
+            const char * __restrict port,
+            const struct addrinfo * __restrict hint,
+            struct addrinfo ** __restrict addr) = 0;
+    virtual void freeaddrinfo(struct addrinfo * addr) = 0;
+    virtual int socket(int family, int type, int protocol) = 0;
+    virtual int connect(int sock, const struct sockaddr * addr,
+            socklen_t len) = 0;
+    virtual int getpeername(int sock, struct sockaddr * __restrict peer,
+            socklen_t * __restrict len) = 0;
+    virtual int fcntl(int sock, int flag, int value) = 0;
+    virtual int setsockopt(int sock, int level, int optname, const void *optval,
+            socklen_t optlen) = 0;
+    virtual int poll(struct pollfd * pfd, nfds_t size, int timeout) = 0;
+    virtual int shutdown(int sock, int how) = 0;
+    virtual int close(int sock) = 0;
 };
 
 }
@@ -80,9 +81,11 @@ ssize_t recv(int sock, void * buffer, size_t size, int flag);
 
 ssize_t send(int sock, const void * buffer, size_t size, int flag);
 
+ssize_t recvmsg(int socket, struct msghdr *message, int flags);
+
 int getaddrinfo(const char * __restrict host, const char * __restrict port,
-		const struct addrinfo * __restrict hint,
-		struct addrinfo ** __restrict addr);
+        const struct addrinfo * __restrict hint,
+        struct addrinfo ** __restrict addr);
 
 void freeaddrinfo(struct addrinfo * addr);
 
@@ -91,12 +94,12 @@ int socket(int family, int type, int protocol);
 int connect(int sock, const struct sockaddr * addr, socklen_t len);
 
 int getpeername(int sock, struct sockaddr * __restrict peer,
-		socklen_t * __restrict len);
+        socklen_t * __restrict len);
 
 int fcntl(int sock, int flag, int value);
 
 int setsockopt(int sock, int level, int optname, const void *optval,
-		socklen_t optlen);
+        socklen_t optlen);
 
 int poll(struct pollfd * pfd, nfds_t size, int timeout);
 

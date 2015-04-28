@@ -67,6 +67,8 @@ SessionConfig::SessionConfig(const Config & conf) {
             &notRetryAnotherNode, "input.notretry-another-node", false
         }, {
             &useMappedFile, "input.localread.mappedfile", true
+        }, {
+            &legacyLocalBlockReader, "dfs.client.use.legacy.blockreader.local", false
         }
     };
     ConfigDefault<int32_t> i32Values[] = {
@@ -124,6 +126,8 @@ SessionConfig::SessionConfig(const Config & conf) {
             &heartBeatInterval, "output.heeartbeat.interval", 10 * 1000
         }, {
             &rpcMaxHARetry, "dfs.client.failover.max.attempts", 15, bind(CheckRangeGE<int32_t>, _1, _2, 0)
+        }, {
+            &maxFileDescriptorCacheSize, "dfs.client.read.shortcircuit.streams.cache.size", 256, bind(CheckRangeGE<int32_t>, _1, _2, 0)
         }
     };
     ConfigDefault<int64_t> i64Values [] = {
@@ -135,7 +139,8 @@ SessionConfig::SessionConfig(const Config & conf) {
         {&defaultUri, "dfs.default.uri", "hdfs://localhost:9000" },
         {&rpcAuthMethod, "hadoop.security.authentication", "simple" },
         {&kerberosCachePath, "hadoop.security.kerberos.ticket.cache.path", "" },
-        {&logSeverity, "dfs.client.log.severity", "INFO" }
+        {&logSeverity, "dfs.client.log.severity", "INFO" },
+        {&domainSocketPath, "dfs.domain.socket.path", ""}
     };
 
     for (size_t i = 0; i < ARRAYSIZE(boolValues); ++i) {

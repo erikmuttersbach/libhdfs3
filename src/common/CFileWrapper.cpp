@@ -44,9 +44,24 @@ CFileWrapper::~CFileWrapper() {
 }
 
 bool CFileWrapper::open(int fd, bool delegate) {
-    assert(false && "not implemented");
-    abort();
-    return false;
+    int newfd = fd;
+
+    if (!delegate) {
+        newfd = dup(fd);
+
+        if (newfd < 0) {
+            THROW(HdfsIOException, "Cannot duplicate file descriptor: %s",
+                  GetSystemErrorInfo(errno));
+        }
+    }
+
+    file = fdopen(newfd, "rb");
+
+    if (NULL == file && !delegate) {
+        ::close(newfd);
+    }
+
+    return NULL != file;
 }
 
 bool CFileWrapper::open(const std::string & path) {
@@ -87,13 +102,14 @@ void CFileWrapper::copy(char * buffer, int32_t size) {
 }
 
 void CFileWrapper::seek(int64_t offset) {
-    assert(offset > 0);
+    assert(offset >= 0);
     int64_t todo = offset, batch;
     bool seek_set = true;
 
-    while (todo > 0) {
-        batch = todo < std::numeric_limits<long>::max() ?
-                todo : std::numeric_limits<long>::max();
+    do {
+        batch = todo < std::numeric_limits<long>::max()
+                    ? todo
+                    : std::numeric_limits<long>::max();
         off_t rc = fseek(file, static_cast<long>(batch),
                          seek_set ? SEEK_SET : SEEK_CUR);
         seek_set = false;
@@ -104,7 +120,7 @@ void CFileWrapper::seek(int64_t offset) {
         }
 
         todo -= batch;
-    }
+    } while (todo > 0);
 }
 
 }

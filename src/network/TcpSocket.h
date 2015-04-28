@@ -176,7 +176,7 @@ private:
     void setLingerTimeoutInternal(int timeout);
     void setSendTimeout(int timeout);
 
-private:
+protected:
     int sock;
     int lingerTimeout;
     std::string remoteAddr;  //used for error message

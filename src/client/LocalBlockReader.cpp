@@ -44,28 +44,25 @@
 namespace Hdfs {
 namespace Internal {
 
-LocalBlockReader::LocalBlockReader(const BlockLocalPathInfo & info,
-                                   const ExtendedBlock & block, int64_t offset, bool verify,
-                                   SessionConfig & conf, std::vector<char> & buffer) :
-    verify(verify), pbuffer(NULL), pMetaBuffer(NULL), block(block), checksumSize(0), chunkSize(0), position(0), size(0), cursor(
-        0), length(block.getNumBytes()), dataFilePath(info.getLocalBlockPath()), metaFilePath(
-            info.getLocalMetaPath()), buffer(buffer) {
-    exception_ptr lastError;
-
+LocalBlockReader::LocalBlockReader(const shared_ptr<ReadShortCircuitInfo>& info,
+                                   const ExtendedBlock& block, int64_t offset,
+                                   bool verify, SessionConfig& conf,
+                                   std::vector<char>& buffer)
+    : verify(verify),
+      pbuffer(NULL),
+      pMetaBuffer(NULL),
+      block(block),
+      checksumSize(0),
+      chunkSize(0),
+      position(0),
+      size(0),
+      cursor(0),
+      length(block.getNumBytes()),
+      info(info),
+      buffer(buffer) {
     try {
-        if (conf.doUseMappedFile()) {
-            metaFd = shared_ptr<MappedFileWrapper>(new MappedFileWrapper);
-            dataFd = shared_ptr<MappedFileWrapper>(new MappedFileWrapper);
-        } else {
-            metaFd = shared_ptr<CFileWrapper>(new CFileWrapper);
-            dataFd = shared_ptr<CFileWrapper>(new CFileWrapper);
-        }
-
-        if (!metaFd->open(metaFilePath)) {
-            THROW(HdfsIOException,
-                  "LocalBlockReader cannot open metadata file \"%s\", %s",
-                  metaFilePath.c_str(), GetSystemErrorInfo(errno));
-        }
+        metaFd = info->getMetaFile();
+        dataFd = info->getDataFile();
 
         std::vector<char> header;
         pMetaBuffer = metaFd->read(header, HEADER_SIZE);
@@ -113,12 +110,6 @@ LocalBlockReader::LocalBlockReader(const BlockLocalPathInfo & info,
                   chunkSize);
         }
 
-        if (!dataFd->open(dataFilePath)) {
-            THROW(HdfsIOException,
-                  "LocalBlockReader cannot open data file \"%s\", %s",
-                  dataFilePath.c_str(), GetSystemErrorInfo(errno));
-        }
-
         localBufferSize = conf.getLocalReadBufferSize();
 
         if (verify) {
@@ -127,22 +118,6 @@ LocalBlockReader::LocalBlockReader(const BlockLocalPathInfo & info,
 
         if (offset > 0) {
             skip(offset);
-        }
-    } catch (...) {
-        if (metaFd) {
-            metaFd->close();
-        }
-
-        if (dataFd) {
-            dataFd->close();
-        }
-
-        lastError = current_exception();
-    }
-
-    try {
-        if (lastError != exception_ptr()) {
-            rethrow_exception(lastError);
         }
     } catch (const HdfsCanceled & e) {
         throw;
@@ -177,8 +152,8 @@ void LocalBlockReader::readAndVerify(int32_t bufferSize) {
 
         if (target != checksum->getValue()) {
             THROW(ChecksumException,
-                  "LocalBlockReader checksum not match for block file: %s",
-                  dataFilePath.c_str());
+                  "LocalBlockReader checksum not match for block: %s",
+                  block.toString().c_str());
         }
     }
 }
@@ -241,6 +216,7 @@ int32_t LocalBlockReader::read(char * buf, int32_t size) {
     } catch (const HdfsCanceled & e) {
         throw;
     } catch (const HdfsException & e) {
+        info->setValid(false);
         NESTED_THROW(HdfsIOException,
                      "LocalBlockReader failed to read from position: %" PRId64 ", length: %d, block: %s.",
                      cursor, size, block.toString().c_str());
@@ -301,6 +277,7 @@ void LocalBlockReader::skip(int64_t len) {
     } catch (const HdfsCanceled & e) {
         throw;
     } catch (const HdfsException & e) {
+        info->setValid(false);
         NESTED_THROW(HdfsIOException,
                      "LocalBlockReader failed to skip from position: %" PRId64 ", length: %d, block: %s.",
                      cursor, size, block.toString().c_str());
