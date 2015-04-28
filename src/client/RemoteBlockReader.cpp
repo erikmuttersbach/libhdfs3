@@ -52,6 +52,7 @@ RemoteBlockReader::RemoteBlockReader(const ExtendedBlock & eb, DatanodeInfo & da
         sock = shared_ptr<Socket>(new TcpSocketImpl());
         in = shared_ptr<BufferedSocketReader>(new BufferedSocketReaderImpl(*sock));
         sock->connect(datanode.getIpAddr().c_str(), datanode.getXferPort(), connTimeout);
+        sock->setNoDelay(true);
         sender = shared_ptr<DataTransferProtocol>(
                      new DataTransferProtocolSender(*sock, writeTimeout, datanode.formatAddress()));
         sender->readBlock(eb, token, clientName, start, len);
