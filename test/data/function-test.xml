@@ -42,7 +42,7 @@
 
 	<property>
 		<name>dfs.client.use.legacy.blockreader.local</name>
-		<value>false</value>
+		<value>true</value>
 	</property>
 
 	<property>
@@ -103,5 +103,15 @@
 	<property>
 		<name>test.get.confint32</name>
 		<value>10</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.socketcache.expiryMsec</name>
+		<value>3000</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.socketcache.capacity</name>
+		<value>1</value>
 	</property>
 </configuration>

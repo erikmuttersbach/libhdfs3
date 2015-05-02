@@ -299,6 +299,14 @@ public:
         this->maxFileDescriptorCacheSize = maxFileDescriptorCacheSize;
     }
 
+    int32_t getSocketCacheExpiry() const {
+      return socketCacheExpiry;
+    }
+
+    int32_t getSocketCacheCapacity() const {
+      return socketCacheCapacity;
+    }
+
 public:
     /*
      * rpc configure
@@ -335,11 +343,13 @@ public:
     int32_t inputReadTimeout;
     int32_t inputWriteTimeout;
     int32_t localReadBufferSize;
+    int32_t maxFileDescriptorCacheSize;
     int32_t maxGetBlockInfoRetry;
     int32_t maxLocalBlockInfoCacheSize;
-    int32_t maxFileDescriptorCacheSize;
     int32_t maxReadBlockRetry;
     int32_t prefetchSize;
+    int32_t socketCacheCapacity;
+    int32_t socketCacheExpiry;
     std::string domainSocketPath;
 
     /*

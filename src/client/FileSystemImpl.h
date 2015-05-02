@@ -474,6 +474,15 @@ public:
      */
     bool renewLease();
 
+    /**
+     * Get the peer cache.
+     *
+     * @return return the peer cache.
+     */
+    PeerCache& getPeerCache() {
+        return *peerCache;
+    }
+
 private:
     Config conf;
     FileSystemKey key;
@@ -481,6 +490,7 @@ private:
     mutex mutWorkingDir;
     Namenode * nn;
     SessionConfig sconf;
+    shared_ptr<PeerCache> peerCache;
     std::string clientName;
     std::string tokenService;
     std::string workingDir;

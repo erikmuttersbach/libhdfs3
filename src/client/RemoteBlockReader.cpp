@@ -40,32 +40,63 @@
 namespace Hdfs {
 namespace Internal {
 
-RemoteBlockReader::RemoteBlockReader(const ExtendedBlock & eb, DatanodeInfo & datanode, int64_t start, int64_t len,
-                                     const Token & token, const char * clientName, bool verify, SessionConfig & conf) :
-    verify(verify), datanode(datanode), binfo(eb), checksumSize(0), chunkSize(0), position(0), size(0), cursor(
-        start), endOffset(len + start), lastSeqNo(-1) {
-    try {
-        assert(start >= 0);
-        readTimeout = conf.getInputReadTimeout();
-        writeTimeout = conf.getInputWriteTimeout();
-        connTimeout = conf.getInputConnTimeout();
-        sock = shared_ptr<Socket>(new TcpSocketImpl());
-        in = shared_ptr<BufferedSocketReader>(new BufferedSocketReaderImpl(*sock));
-        sock->connect(datanode.getIpAddr().c_str(), datanode.getXferPort(), connTimeout);
-        sock->setNoDelay(true);
-        sender = shared_ptr<DataTransferProtocol>(
-                     new DataTransferProtocolSender(*sock, writeTimeout, datanode.formatAddress()));
-        sender->readBlock(eb, token, clientName, start, len);
-        checkResponse();
-    } catch (const HdfsTimeoutException & e) {
-        NESTED_THROW(HdfsIOException,
-                     "RemoteBlockReader: Failed to setup remote block reader for block %s from node %s",
-                     eb.toString().c_str(), datanode.formatAddress().c_str());
-    }
+RemoteBlockReader::RemoteBlockReader(const ExtendedBlock& eb,
+                                     DatanodeInfo& datanode,
+                                     PeerCache& peerCache, int64_t start,
+                                     int64_t len, const Token& token,
+                                     const char* clientName, bool verify,
+                                     SessionConfig& conf)
+    : sentStatus(false),
+      verify(verify),
+      binfo(eb),
+      datanode(datanode),
+      checksumSize(0),
+      chunkSize(0),
+      position(0),
+      size(0),
+      cursor(start),
+      endOffset(len + start),
+      lastSeqNo(-1),
+      peerCache(peerCache) {
+
+    assert(start >= 0);
+    readTimeout = conf.getInputReadTimeout();
+    writeTimeout = conf.getInputWriteTimeout();
+    connTimeout = conf.getInputConnTimeout();
+    sock = getNextPeer(datanode);
+    in = shared_ptr<BufferedSocketReader>(new BufferedSocketReaderImpl(*sock));
+    sender = shared_ptr<DataTransferProtocol>(new DataTransferProtocolSender(
+        *sock, writeTimeout, datanode.formatAddress()));
+    sender->readBlock(eb, token, clientName, start, len);
+    checkResponse();
 }
 
 RemoteBlockReader::~RemoteBlockReader() {
-    sock->close();
+    if (sentStatus) {
+        peerCache.addConnection(sock, datanode);
+    } else {
+        sock->close();
+    }
+}
+
+shared_ptr<Socket> RemoteBlockReader::getNextPeer(const DatanodeInfo& dn) {
+    shared_ptr<Socket> sock;
+    try {
+        sock = peerCache.getConnection(dn);
+
+        if (!sock) {
+            sock = shared_ptr<Socket>(new TcpSocketImpl);
+            sock->connect(dn.getIpAddr().c_str(), dn.getXferPort(),
+                          connTimeout);
+            sock->setNoDelay(true);
+        }
+    } catch (const HdfsTimeoutException & e) {
+        NESTED_THROW(HdfsIOException,
+                     "RemoteBlockReader: Failed to connect to %s",
+                     dn.formatAddress().c_str());
+    }
+
+    return sock;
 }
 
 void RemoteBlockReader::checkResponse() {
@@ -252,6 +283,7 @@ void RemoteBlockReader::sendStatus() {
     buffer.writeVarint32(size);
     status.SerializeToArray(buffer.alloc(size), size);
     sock->writeFully(buffer.getBuffer(0), buffer.getDataSize(0), writeTimeout);
+    sentStatus = true;
 }
 
 void RemoteBlockReader::verifyChecksum(int chunks) {

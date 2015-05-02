@@ -58,7 +58,7 @@ public:
         list.clear();
     }
 
-    void resize(size_t s) {
+    void setMaxSize(size_t s) {
         lock_guard<mutex> lock(mut);
         maxSize = s;
 
@@ -100,24 +100,42 @@ public:
         }
     }
 
-    bool find(const KeyType& key, ValueType& value) {
+    bool find(const KeyType& key, ValueType* value) {
         lock_guard<mutex> lock(mut);
-        typename MapType::iterator it = map.find(key);
+        return findAndEraseInternal(key, value, false);
+    }
 
-        if (it != map.end()) {
-            list.push_front(*(it->second));
-            list.erase(it->second);
-            value = list.front().second;
-            map[key] = list.begin();
-            return true;
-        }
-
-        return false;
+    bool findAndErase(const KeyType& key, ValueType* value) {
+        lock_guard<mutex> lock(mut);
+        return findAndEraseInternal(key, value, true);
     }
 
     size_t size() {
         lock_guard<mutex> lock(mut);
         return count;
+    }
+
+private:
+    bool findAndEraseInternal(const KeyType& key, ValueType* value,
+                              bool erase) {
+        typename MapType::iterator it = map.find(key);
+
+        if (it != map.end()) {
+            *value = it->second->second;
+            list.erase(it->second);
+
+            if (erase) {
+                map.erase(it);
+                --count;
+            } else {
+                list.push_front(std::make_pair(key, *value));
+                map[key] = list.begin();
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
 private:

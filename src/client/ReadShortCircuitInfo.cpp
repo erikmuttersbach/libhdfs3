@@ -103,9 +103,7 @@ shared_ptr<ReadShortCircuitInfo> ReadShortCircuitInfoBuilder::fetchOrCreate(
     shared_ptr<ReadShortCircuitFDHolder> fds;
 
     // find a pair available file descriptors in cache.
-    if (ReadShortCircuitFDCache.find(key, fds)) {
-      ReadShortCircuitFDCache.erase(key);
-
+    if (ReadShortCircuitFDCache.findAndErase(key, &fds)) {
       try {
         LOG(DEBUG1,
             "Get file descriptors from cache for block %s, cache size %zu",
@@ -119,7 +117,7 @@ shared_ptr<ReadShortCircuitInfo> ReadShortCircuitInfoBuilder::fetchOrCreate(
 
     // create a new one
     retval = createReadShortCircuitInfo(key, block, token);
-    ReadShortCircuitFDCache.resize(conf.getMaxFileDescriptorCacheSize());
+    ReadShortCircuitFDCache.setMaxSize(conf.getMaxFileDescriptorCacheSize());
   }
 
   return retval;
@@ -142,7 +140,7 @@ BlockLocalPathInfo ReadShortCircuitInfoBuilder::getBlockLocalPathInfo(
                               block.getPoolId());
 
   try {
-    if (!BlockLocalPathInfoCache.find(key, retval)) {
+    if (!BlockLocalPathInfoCache.find(key, &retval)) {
       RpcAuth a = auth;
       SessionConfig c = conf;
       c.setRpcMaxRetryOnConnect(1);
@@ -155,7 +153,7 @@ BlockLocalPathInfo ReadShortCircuitInfoBuilder::getBlockLocalPathInfo(
           dnInfo.getIpAddr().c_str(), dnInfo.getIpcPort(), c, a));
       dn->getBlockLocalPathInfo(block, token, retval);
 
-      BlockLocalPathInfoCache.resize(conf.getMaxLocalBlockInfoCacheSize());
+      BlockLocalPathInfoCache.setMaxSize(conf.getMaxLocalBlockInfoCacheSize());
       BlockLocalPathInfoCache.insert(key, retval);
 
       LOG(DEBUG1, "Inserted block %s to local block info cache, cache size %zu",

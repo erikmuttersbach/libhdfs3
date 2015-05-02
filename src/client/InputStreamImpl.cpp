@@ -122,7 +122,7 @@ unordered_set<std::string> BuildLocalAddrSet() {
 InputStreamImpl::InputStreamImpl() :
     closed(true), localRead(true), readFromUnderConstructedBlock(false), verify(
         true), maxGetBlockInfoRetry(3), cursor(0), endOfCurBlock(0), lastBlockBeingWrittenLength(
-            0), prefetchSize(0) {
+            0), prefetchSize(0), peerCache(NULL) {
 #ifdef MOCK
     stub = NULL;
 #endif
@@ -367,16 +367,11 @@ void InputStreamImpl::setupBlockReader(bool temporaryDisableLocalRead) {
                     throw;
                 }
             } else {
-                const char * clientName;
-                LOG(DEBUG2, "%p setup remote block reader for file %s from remote block %s, block offset %" PRId64 ""
-                    ", read block length %" PRId64 " end of block %" PRId64 ", from node %s",
-                    this, path.c_str(), curBlock->toString().c_str(), offset, len, offset + len, curNode.formatAddress().c_str());
-                clientName = filesystem->getClientName();
+                const char * clientName = filesystem->getClientName();
                 lastReadFromLocal = false;
-                blockReader = shared_ptr < BlockReader
-                              > (new RemoteBlockReader(*curBlock, curNode, offset,
-                                                       len, curBlock->getToken(),
-                                                       clientName, verify, *conf));
+                blockReader = shared_ptr<BlockReader>(new RemoteBlockReader(
+                    *curBlock, curNode, *peerCache, offset, len,
+                    curBlock->getToken(), clientName, verify, *conf));
             }
 
             break;
@@ -431,6 +426,7 @@ void InputStreamImpl::openInternal(shared_ptr<FileSystemInter> fs, const char * 
         prefetchSize = conf->getDefaultBlockSize() * conf->getPrefetchSize();
         localRead = conf->isReadFromLocal();
         maxGetBlockInfoRetry = conf->getMaxGetBlockInfoRetry();
+        peerCache = &fs->getPeerCache();
         updateBlockInfos();
         closed = false;
     } catch (const HdfsCanceled & e) {

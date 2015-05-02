@@ -35,6 +35,7 @@
 #include "network/BufferedSocketReader.h"
 #include "network/TcpSocket.h"
 #include "PacketHeader.h"
+#include "PeerCache.h"
 #include "server/DatanodeInfo.h"
 #include "server/LocatedBlocks.h"
 #include "SessionConfig.h"
@@ -44,9 +45,10 @@ namespace Internal {
 
 class RemoteBlockReader: public BlockReader {
 public:
-    RemoteBlockReader(const ExtendedBlock & eb, DatanodeInfo & datanode,
-                      int64_t start, int64_t len, const Token & token,
-                      const char * clientName, bool verify, SessionConfig & conf);
+    RemoteBlockReader(const ExtendedBlock& eb, DatanodeInfo& datanode,
+                      PeerCache& peerCache, int64_t start, int64_t len,
+                      const Token& token, const char* clientName, bool verify,
+                      SessionConfig& conf);
 
     ~RemoteBlockReader();
 
@@ -74,15 +76,17 @@ public:
 private:
     bool readTrailingEmptyPacket();
     shared_ptr<PacketHeader> readPacketHeader();
+    shared_ptr<Socket> getNextPeer(const DatanodeInfo& dn);
     void checkResponse();
     void readNextPacket();
     void sendStatus();
     void verifyChecksum(int chunks);
 
 private:
+    bool sentStatus;
     bool verify; //verify checksum or not.
-    DatanodeInfo & datanode;
     const ExtendedBlock & binfo;
+    DatanodeInfo & datanode;
     int checksumSize;
     int chunkSize;
     int connTimeout;
@@ -93,6 +97,7 @@ private:
     int64_t cursor; //point in block.
     int64_t endOffset; //offset in block requested to read to.
     int64_t lastSeqNo; //segno of the last chunk received
+    PeerCache& peerCache;
     shared_ptr<BufferedSocketReader> in;
     shared_ptr<Checksum> checksum;
     shared_ptr<DataTransferProtocol> sender;

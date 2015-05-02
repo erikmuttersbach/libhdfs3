@@ -36,6 +36,7 @@
 #include "FileStatus.h"
 #include "FileSystemKey.h"
 #include "FileSystemStats.h"
+#include "PeerCache.h"
 #include "Permission.h"
 #include "server/LocatedBlocks.h"
 #include "SessionConfig.h"
@@ -480,6 +481,12 @@ public:
      */
     virtual bool renewLease() = 0;
 
+    /**
+     * Get the peer cache.
+     *
+     * @return return the peer cache.
+     */
+    virtual PeerCache& getPeerCache() = 0;
 };
 
 }

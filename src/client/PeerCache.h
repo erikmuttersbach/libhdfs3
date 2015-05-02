@@ -25,40 +25,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "gtest/gtest.h"
-#include "LruMap.h"
+#ifndef _HDFS_LIBHDFS3_CLIENT_PEERCACHE_H_
+#define _HDFS_LIBHDFS3_CLIENT_PEERCACHE_H_
 
-using namespace Hdfs::Internal;
+#include <string>
+#include <utility>
 
-TEST(TestLruMap, TestInsertAndFind) {
-    LruMap<int, int> map(3);
-    map.insert(1, 1);
-    map.insert(2, 2);
-    map.insert(3, 3);
-    map.insert(4, 4);
-    int value;
-    EXPECT_TRUE(map.find(2, &value));
-    EXPECT_TRUE(value == 2);
-    EXPECT_TRUE(map.find(3, &value));
-    EXPECT_TRUE(value == 3);
-    EXPECT_TRUE(map.find(4, &value));
-    EXPECT_TRUE(value == 4);
-    EXPECT_FALSE(map.find(1, &value));
-    EXPECT_TRUE(map.find(2, &value));
-    EXPECT_TRUE(value == 2);
-    map.insert(5, 5);
-    EXPECT_FALSE(map.find(3, &value));
+#include "common/DateTime.h"
+#include "common/LruMap.h"
+#include "common/Memory.h"
+#include "common/SessionConfig.h"
+#include "network/Socket.h"
+#include "server/DatanodeInfo.h"
+
+namespace Hdfs {
+namespace Internal {
+
+class PeerCache {
+ public:
+  explicit PeerCache(const SessionConfig& conf);
+
+  shared_ptr<Socket> getConnection(const DatanodeInfo& datanode);
+
+  void addConnection(shared_ptr<Socket> peer, const DatanodeInfo& datanode);
+
+  typedef std::pair<shared_ptr<Socket>, steady_clock::time_point> value_type;
+
+ private:
+  std::string buildKey(const DatanodeInfo& datanode);
+
+ private:
+  const int cacheSize;
+  int64_t expireTimeInterval;  // milliseconds
+  static LruMap<std::string, value_type> Map;
+};
+}
 }
 
-TEST(TestLruMap, TestFindAndErase) {
-    LruMap<int, int> map(3);
-    map.insert(1, 1);
-    map.insert(2, 2);
-    map.insert(3, 3);
-    map.insert(4, 4);
-    int value;
-    EXPECT_EQ(3, map.size());
-    EXPECT_TRUE(map.findAndErase(2, &value));
-    EXPECT_TRUE(value == 2);
-    EXPECT_EQ(2, map.size());
-}
+#endif /* _HDFS_LIBHDFS3_CLIENT_PEERCACHE_H_ */

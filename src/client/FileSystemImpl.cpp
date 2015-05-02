@@ -100,8 +100,13 @@ static const std::string CanonicalizePath(const std::string & path) {
     return retval.empty() ? "/" : retval;
 }
 
-FileSystemImpl::FileSystemImpl(const FileSystemKey & key, const Config & c) :
-    conf(c), key(key), openedOutputStream(0), nn(NULL), sconf(c), user(key.getUser()) {
+FileSystemImpl::FileSystemImpl(const FileSystemKey& key, const Config& c)
+    : conf(c),
+      key(key),
+      openedOutputStream(0),
+      nn(NULL),
+      sconf(c),
+      user(key.getUser()) {
     static atomic<uint32_t> count(0);
     std::stringstream ss;
     ss.imbue(std::locale::classic());
@@ -110,6 +115,7 @@ FileSystemImpl::FileSystemImpl(const FileSystemKey & key, const Config & c) :
        << getpid() << "_tid_" << pthread_self();
     clientName = ss.str();
     workingDir = std::string("/user/") + user.getEffectiveUser();
+    peerCache = shared_ptr<PeerCache>(new PeerCache(sconf));
 #ifdef MOCK
     stub = NULL;
 #endif

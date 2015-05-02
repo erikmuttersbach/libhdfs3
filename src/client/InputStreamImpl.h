@@ -36,6 +36,7 @@
 #include "Hash.h"
 #include "InputStreamInter.h"
 #include "Memory.h"
+#include "PeerCache.h"
 #include "rpc/RpcAuth.h"
 #include "server/Datanode.h"
 #include "server/LocatedBlock.h"
@@ -100,6 +101,11 @@ public:
      */
     void close();
 
+    /**
+     * Convert to a printable string
+     *
+     * @return return a printable string
+     */
     std::string toString();
 
 private:
@@ -131,6 +137,7 @@ private:
     int64_t endOfCurBlock;
     int64_t lastBlockBeingWrittenLength;
     int64_t prefetchSize;
+    PeerCache *peerCache;
     RpcAuth auth;
     shared_ptr<BlockReader> blockReader;
     shared_ptr<FileSystemInter> filesystem;
