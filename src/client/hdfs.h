@@ -311,6 +311,9 @@ int hdfsDisconnect(hdfsFS fs);
 hdfsFile hdfsOpenFile(hdfsFS fs, const char * path, int flags, int bufferSize,
                       short replication, tOffset blocksize);
 
+hdfsFile hdfsOpenFile2(hdfsFS fs, const char *datanode, const char * path, int flags, int bufferSize,
+                      short replication, tOffset blocksize);
+
 /**
  * hdfsCloseFile - Close an open file.
  * @param fs The configured filesystem handle.

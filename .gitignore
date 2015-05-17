@@ -1,6 +1,7 @@
 .settings/
 .cproject
 .project
+.idea
 build*/
 releng/
 ext/

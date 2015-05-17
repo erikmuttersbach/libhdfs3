@@ -653,6 +653,11 @@ int hdfsDisconnect(hdfsFS fs) {
 
 hdfsFile hdfsOpenFile(hdfsFS fs, const char * path, int flags, int bufferSize,
                       short replication, tOffset blocksize) {
+    return hdfsOpenFile2(fs, NULL, path, flags, bufferSize, replication, blocksize);
+}
+
+hdfsFile hdfsOpenFile2(hdfsFS fs, const char *hostname, const char * path, int flags, int bufferSize,
+                      short replication, tOffset blocksize) {
     PARAMETER_ASSERT(fs && path && strlen(path) > 0, NULL, EINVAL);
     PARAMETER_ASSERT(bufferSize >= 0 && replication >= 0 && blocksize >= 0, NULL, EINVAL);
     PARAMETER_ASSERT(!(flags & O_RDWR) && !((flags & O_EXCL) && (flags & O_CREAT)), NULL, ENOTSUP);
@@ -688,6 +693,9 @@ hdfsFile hdfsOpenFile(hdfsFS fs, const char * path, int flags, int bufferSize,
         } else {
             file->setInput(true);
             is = new InputStream;
+            if(hostname != NULL) {
+                is->setHostname(hostname);
+            }
             is->open(fs->getFilesystem(), path, true);
             file->setStream(is);
         }

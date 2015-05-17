@@ -44,6 +44,8 @@
 #include "SessionConfig.h"
 #include "Unordered.h"
 
+#include <string>
+
 #ifdef MOCK
 #include "TestDatanodeStub.h"
 #endif
@@ -108,6 +110,8 @@ public:
      */
     std::string toString();
 
+    void setHostname(std::string hostname);
+
 private:
     bool choseBestNode();
     bool isLocalNode();
@@ -147,6 +151,7 @@ private:
     std::string path;
     std::vector<DatanodeInfo> failedNodes;
     std::vector<char> localReaderBuffer;
+    std::string hostname;
 
 #ifdef MOCK
 private:

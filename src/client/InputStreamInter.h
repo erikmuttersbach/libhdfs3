@@ -97,6 +97,8 @@ public:
      * Output a readable string of this input stream.
      */
     virtual std::string toString() = 0;
+
+    virtual void setHostname(std::string hostname) = 0;
 };
 
 }

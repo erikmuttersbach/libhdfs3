@@ -90,6 +90,8 @@ public:
      */
     void close();
 
+    void setHostname(const char *hostname);
+
 private:
     Internal::InputStreamInter * impl;
 };

@@ -58,6 +58,10 @@ void InputStream::open(FileSystem & fs, const char * path,
     impl->open(fs.impl->filesystem, path, verifyChecksum);
 }
 
+    void InputStream::setHostname(const char *hostname) {
+        impl->setHostname(std::string(hostname));
+    }
+
 /**
  * To read data from hdfs.
  * @param buf the buffer used to filled.
