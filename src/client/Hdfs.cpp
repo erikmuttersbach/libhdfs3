@@ -1081,9 +1081,9 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries) {
     delete[] infos;
 }
 
-/*char ** * hdfsGetHosts(hdfsFS fs, const char * path, tOffset start,
+char ** * hdfsGetHosts(hdfsFS fs, const char * path, tOffset start,
                        tOffset length) {
-    PARAMETER_ASSERT(fs && path && strlen(path) > 0 && start > 0, NULL, EINVAL);
+    PARAMETER_ASSERT(fs && path && strlen(path) > 0 && start >= 0, NULL, EINVAL);
     char ** * retval = NULL;
 
     try {
@@ -1111,10 +1111,10 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries) {
         handleException(Hdfs::current_exception());
     }
 
-    return NULL;
-}*/
+    return retval;
+}
 
-/*void hdfsFreeHosts(char ** *blockHosts) {
+void hdfsFreeHosts(char ** *blockHosts) {
     if (blockHosts == NULL) {
         return;
     }
@@ -1128,7 +1128,7 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries) {
     }
 
     delete[] blockHosts;
-}*/
+}
 
 tOffset hdfsGetDefaultBlockSize(hdfsFS fs) {
     PARAMETER_ASSERT(fs != NULL, -1, EINVAL);

@@ -10,20 +10,23 @@ using namespace std;
 
 // On Mac OS X clock_gettime is not available
 #ifdef __MACH__
+
 #include <mach/mach_time.h>
 
 #define CLOCK_MONOTONIC 0
-int clock_gettime(int clk_id, struct timespec *t){
+
+int clock_gettime(int clk_id, struct timespec *t) {
     mach_timebase_info_data_t timebase;
     mach_timebase_info(&timebase);
     uint64_t time;
     time = mach_absolute_time();
-    double nseconds = ((double)time * (double)timebase.numer)/((double)timebase.denom);
-    double seconds = ((double)time * (double)timebase.numer)/((double)timebase.denom * 1e9);
+    double nseconds = ((double) time * (double) timebase.numer) / ((double) timebase.denom);
+    double seconds = ((double) time * (double) timebase.numer) / ((double) timebase.denom * 1e9);
     t->tv_sec = seconds;
     t->tv_nsec = nseconds;
     return 0;
 }
+
 #endif
 
 #define EXPECT_NONZERO(r, func) if(r==NULL) { \
@@ -78,18 +81,18 @@ void print_usage() {
 void parse_options(int argc, char *argv[]) {
 
     static struct option options_config[] = {
-            {"file",   required_argument, 0,                'f'},
-            {"buffer", optional_argument, 0,                'b'},
-            {"help",   optional_argument, 0,                'h'},
-            {"type",   optional_argument, 0,                't'},
-            {"socket", optional_argument, 0,                's'},
-            {"namenode", optional_argument, 0,              'n'},
-            {"namenode-port", optional_argument, 0,         'p'},
-            {"verbose",      no_argument,       &options.verbose, 'v'},
-            {"sample",      no_argument,       &options.sample, 'x'},
-            {"skip-checksums",     no_argument, &options.skip_checksums, 1},
+            {"file",           required_argument, 0,                       'f'},
+            {"buffer",         optional_argument, 0,                       'b'},
+            {"help",           optional_argument, 0,                       'h'},
+            {"type",           optional_argument, 0,                       't'},
+            {"socket",         optional_argument, 0,                       's'},
+            {"namenode",       optional_argument, 0,                       'n'},
+            {"namenode-port",  optional_argument, 0,                       'p'},
+            {"verbose",        no_argument,       &options.verbose,        'v'},
+            {"sample",         no_argument,       &options.sample,         'x'},
+            {"skip-checksums", no_argument,       &options.skip_checksums, 1},
 
-            {0, 0,                        0,                0}
+            {0, 0,                                0,                       0}
     };
 
     int c = 0;
@@ -123,11 +126,11 @@ void parse_options(int argc, char *argv[]) {
                 options.sample = true;
                 break;
             case 't':
-                if(strcmp(optarg, "standard") == 0) {
+                if (strcmp(optarg, "standard") == 0) {
                     options.type = type_t::standard;
-                } else  if(strcmp(optarg, "scr") == 0) {
+                } else if (strcmp(optarg, "scr") == 0) {
                     options.type = type_t::scr;
-                } else  if(strcmp(optarg, "zcr") == 0) {
+                } else if (strcmp(optarg, "zcr") == 0) {
                     options.type = type_t::zcr;
                 } else {
                     printf("%s is not a valid type\n", optarg);
@@ -146,10 +149,11 @@ void parse_options(int argc, char *argv[]) {
 }
 
 inline void useData(void *buffer, tSize len) __attribute__((__always_inline__));
+
 inline void useData(void *buffer, tSize len) {
-    uint64_t sum  = 0;
-    for (size_t i = 0; i < len/sizeof(uint64_t); i++) {
-        sum += *(((uint64_t*) buffer) + i);
+    uint64_t sum = 0;
+    for (size_t i = 0; i < len / sizeof(uint64_t); i++) {
+        sum += *(((uint64_t *) buffer) + i);
     }
     assert(sum);
 }
@@ -228,7 +232,7 @@ bool readHdfsStandard(hdfsFS fs, hdfsFile file, hdfsFileInfo *fileInfo) {
 
     free(buffer);
 
-    if(options.verbose) {
+    if (options.verbose) {
         cout << "Performed Standard/SCR" << endl;
     }
     return true;
@@ -237,7 +241,7 @@ bool readHdfsStandard(hdfsFS fs, hdfsFile file, hdfsFileInfo *fileInfo) {
 int main(int argc, char *argv[]) {
     parse_options(argc, argv);
 
-    if(options.verbose) {
+    if (options.verbose) {
         cout << "Namenode:  " << options.namenode << ":" << options.namenode_port << endl;
         cout << "Socket:    " << options.socket << endl;
         cout << "File:      " << options.path << endl;
@@ -249,91 +253,50 @@ int main(int argc, char *argv[]) {
     struct hdfsBuilder *hdfsBuilder = hdfsNewBuilder();
     hdfsBuilderSetNameNode(hdfsBuilder, options.namenode);
     hdfsBuilderSetNameNodePort(hdfsBuilder, options.namenode_port);
-    if(options.type == type_t::undefined || options.type == type_t::scr || options.type == type_t::zcr) {
+    if (options.type == type_t::undefined || options.type == type_t::scr || options.type == type_t::zcr) {
         hdfsBuilderConfSetStr(hdfsBuilder, "dfs.client.read.shortcircuit", "true");
         hdfsBuilderConfSetStr(hdfsBuilder, "dfs.domain.socket.path", options.socket);
         // TODO Test
         //hdfsBuilderConfSetStr(hdfsBuilder, "dfs.client.domain.socket.data.traffic", "true");
         //hdfsBuilderConfSetStr(hdfsBuilder, "dfs.client.read.shortcircuit.streams.cache.size", "4000");
-        hdfsBuilderConfSetStr(hdfsBuilder, "dfs.client.read.shortcircuit.skip.checksum", options.skip_checksums > 0 ? "true" : "false");
+        hdfsBuilderConfSetStr(hdfsBuilder, "dfs.client.read.shortcircuit.skip.checksum",
+                              options.skip_checksums > 0 ? "true" : "false");
     }
 
     // Connect
     hdfsFS fs = hdfsBuilderConnect(hdfsBuilder);
-	EXPECT_NONZERO(fs, "hdfsBuilderConnect")
-
-    struct timespec start, end;
-
-
-    tOffset fileSize = 0;
+    EXPECT_NONZERO(fs, "hdfsBuilderConnect")
 
     // Check if the file exists
     if (hdfsExists(fs, options.path) != 0) {
         printf("File %s does not exist\n", options.path);
-
     } else {
         hdfsFileInfo *fileInfo = hdfsGetPathInfo(fs, options.path);
-        fileSize = fileInfo[0].mSize;
 
-        #ifdef LIBHDFS_HDFS_H
-		if(options.verbose) {
-	        char ***hosts = hdfsGetHosts(fs, options.path, 0, fileInfo->mSize);
-    	    EXPECT_NONZERO(hosts, "hdfsGetHosts")
-        	
-			uint i=0;
-			for(i=0; hosts[i]; i++) {
-				for(uint j=0; hosts[i][j]; j++) 
-					cout << "Block["<< i << "][" << j << "]: " << hosts[i][j] << endl;
-       	 	}
-			cout << "Reading " << i << " blocks" << endl;
-		}
-		#endif
+        char ***hosts = hdfsGetHosts(fs, options.path, 0, fileInfo->mSize);
+        EXPECT_NONZERO(hosts, "hdfsGetHosts")
 
-        clock_gettime(CLOCK_MONOTONIC, &start);
+        uint i = 0;
+        for (i = 0; hosts[i]; i++) {
+            cout << "Block[" << i << "]" << endl;
+            for (uint j = 0; hosts[i][j]; j++)
+                cout << "\t[" << j << "]: " << hosts[i][j] << endl;
+        }
+        cout << "Reading " << i << " blocks" << endl;
+
 
         // Open and read the file
-        hdfsFile file = hdfsOpenFile2(fs, "ubuntu", options.path, O_RDONLY, options.buffer_size, 0, 0);
-        EXPECT_NONZERO(file, "hdfsOpenFile")
+        //hdfsFile file = hdfsOpenFile2(fs, "ubuntu", options.path, O_RDONLY, options.buffer_size, 0, 0);
+        //EXPECT_NONZERO(file, "hdfsOpenFile")
 
-        if(options.type == type_t::undefined) {
-            if (!readHdfsZcr(fs, file, fileInfo)) {
-                cout << "Falling back to standard read" << endl;
-                readHdfsStandard(fs, file, fileInfo);
-            }
-        } else if(options.type == type_t::zcr) {
-            readHdfsZcr(fs, file, fileInfo);
-        } else {
-            readHdfsStandard(fs, file, fileInfo);
-        }
 
-        // Get Statistics
-#ifdef LIBHDFS_HDFS_H
-        if(options.verbose) {
-            struct hdfsReadStatistics *stats;
-            hdfsFileGetReadStatistics(file, &stats);
-            printf("Statistics:\n\tTotal: %lu\n\tLocal: %lu\n\tShort Circuit: %lu\n\tZero Copy Read: %lu\n",
-                   stats->totalBytesRead, stats->totalLocalBytesRead, stats->totalShortCircuitBytesRead,
-                   stats->totalZeroCopyBytesRead);
-            hdfsFileFreeReadStatistics(stats);
-        }
-#endif
 
         hdfsFreeFileInfo(fileInfo, 1);
-        hdfsCloseFile(fs, file);
-    }
-
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    struct timespec d = timespec_diff(start, end);
-    double speed = (((double) fileSize) / ((double) d.tv_sec + d.tv_nsec / 1000000000.0)) / (1024.0 * 1024.0);
-
-    if(options.verbose) {
-        printf("Read %f MB with %lfMiB/s\n", ((double) fileSize) / (1024.0 * 1024.0), speed);
-    } else {
-        printf("%f\n", speed);
+        //hdfsCloseFile(fs, file);
     }
 
     hdfsDisconnect(fs);
-    //hdfsFreeBuilder(hdfsBuilder);
+    hdfsFreeBuilder(hdfsBuilder);
 
     return 0;
 }

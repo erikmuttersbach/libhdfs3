@@ -548,8 +548,8 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries);
  * @return Returns a dynamically-allocated 2-d array of blocks-hosts;
  * NULL on error.
  */
-/*char ** * hdfsGetHosts(hdfsFS fs, const char * path, tOffset start,
-                       tOffset length);*/
+char ** * hdfsGetHosts(hdfsFS fs, const char * path, tOffset start,
+                       tOffset length);
 
 /**
  * hdfsFreeHosts - Free up the structure returned by hdfsGetHosts
@@ -557,7 +557,7 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries);
  * objects.
  * @param numEntries The size of the array.
  */
-/*void hdfsFreeHosts(char ** *blockHosts);*/
+void hdfsFreeHosts(char ** *blockHosts);
 
 /**
  * hdfsGetDefaultBlockSize - Get the default blocksize.
