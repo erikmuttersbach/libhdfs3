@@ -276,14 +276,27 @@ int main(int argc, char *argv[]) {
         char ***hosts = hdfsGetHosts(fs, options.path, 0, fileInfo->mSize);
         EXPECT_NONZERO(hosts, "hdfsGetHosts")
 
-        uint i = 0;
-        for (i = 0; hosts[i]; i++) {
-            cout << "Block[" << i << "]" << endl;
-            for (uint j = 0; hosts[i][j]; j++)
-                cout << "\t[" << j << "]: " << hosts[i][j] << endl;
-        }
-        cout << "Reading " << i << " blocks" << endl;
+        uint block = 0;
+        for (block = 0; hosts[block]; block++) {
+            cout << "Block[" << block << "]" << endl;
+            for (uint j = 0; hosts[block][j]; j++)
+                cout << "\t[" << j << "]: " << hosts[block][j] << endl;
 
+            // Open and read the file
+            hdfsFile file = hdfsOpenFile2(fs, hosts[block][0], options.path, O_RDONLY, options.buffer_size, 0, 0);
+            EXPECT_NONZERO(file, "hdfsOpenFile")
+
+            int r = hdfsSeek(fs, file, fileInfo->mBlockSize*block);
+            EXPECT_NONNEGATIVE(r, "hdfsSeek")
+
+            void *buffer = malloc(fileInfo->mBlockSize);
+            EXPECT_NONNEGATIVE(buffer, "malloc")
+
+            tSize read = hdfsRead(fs, file, buffer, fileInfo->mBlockSize);
+            EXPECT_NONNEGATIVE(read, "hdfsRead")
+
+            hdfsCloseFile(fs, file);
+        }
 
         // Open and read the file
         //hdfsFile file = hdfsOpenFile2(fs, "ubuntu", options.path, O_RDONLY, options.buffer_size, 0, 0);
