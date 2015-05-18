@@ -15,6 +15,7 @@ ENDIF(NOT CMAKE_BUILD_TYPE STREQUAL Debug)
 ADD_DEFINITIONS(-fprofile-arcs -ftest-coverage)
 
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs ")
+SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fprofile-arcs ")
 
 IF(NOT LCOV_PATH)
     MESSAGE(FATAL_ERROR "lcov not found! Aborting...")
