@@ -890,6 +890,24 @@ int hdfsAvailable(hdfsFS fs, hdfsFile file) {
     return -1;
 }
 
+int hdfsCopy(hdfsFS srcFS, const char *src, hdfsFS dstFS, const char *dst) {
+    PARAMETER_ASSERT(srcFS && dstFS, -1, EINVAL);
+    PARAMETER_ASSERT(src && strlen(src) > 0, -1, EINVAL);
+    PARAMETER_ASSERT(dst && strlen(dst) > 0, -1, EINVAL);
+
+    errno = ENOTSUP;
+    return -1;
+}
+
+int hdfsMove(hdfsFS srcFS, const char *src, hdfsFS dstFS, const char *dst) {
+    PARAMETER_ASSERT(srcFS && dstFS, -1, EINVAL);
+    PARAMETER_ASSERT(src && strlen(src) > 0, -1, EINVAL);
+    PARAMETER_ASSERT(dst && strlen(dst) > 0, -1, EINVAL);
+
+    errno = ENOTSUP;
+    return -1;
+}
+
 int hdfsDelete(hdfsFS fs, const char * path, int recursive) {
     PARAMETER_ASSERT(fs && path && strlen(path) > 0, -1, EINVAL);
 
