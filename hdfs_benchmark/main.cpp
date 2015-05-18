@@ -158,86 +158,6 @@ inline void useData(void *buffer, tSize len) {
     assert(sum);
 }
 
-
-bool readHdfsZcr(hdfsFS fs, hdfsFile file, hdfsFileInfo *fileInfo) {
-#ifdef LIBHDFS_HDFS_H
-    struct hadoopRzOptions *rzOptions;
-    struct hadoopRzBuffer *rzBuffer;
-
-    // Initialize zcr
-    rzOptions = hadoopRzOptionsAlloc();
-    EXPECT_NONZERO(rzOptions, "hadoopRzOptionsAlloc")
-
-    hadoopRzOptionsSetSkipChecksum(rzOptions, options.skip_checksums);
-    hadoopRzOptionsSetByteBufferPool(rzOptions, ELASTIC_BYTE_BUFFER_POOL_CLASS);
-
-    size_t total_read = 0, read = 0;
-    do {
-        rzBuffer = hadoopReadZero(file, rzOptions, options.buffer_size);
-        if (rzBuffer != NULL) {
-            const void *data = hadoopRzBufferGet(rzBuffer);
-            read = hadoopRzBufferLength(rzBuffer);
-            total_read += read;
-
-            if (read > 0) {
-                useData((void *) data, read);
-            }
-
-            hadoopRzBufferFree(file, rzBuffer);
-        }
-        else if (errno == EOPNOTSUPP) {
-            printf("zcr not supported\n");
-            return false;
-        }
-        else {
-            EXPECT_NONZERO(rzBuffer, "hadoopReadZero");
-        }
-    } while (read > 0);
-
-    if (total_read != fileInfo[0].mSize) {
-        fprintf(stderr, "Failed to zero-copy read file to full size\n");
-        exit(1);
-    }
-
-    hadoopRzOptionsFree(rzOptions);
-
-    if(options.verbose) {
-        cout << "Performed ZCR" << endl;
-    }
-    return true;
-#else
-    cout << "ZCR not supported" << endl;
-    return false;
-#endif
-}
-
-
-bool readHdfsStandard(hdfsFS fs, hdfsFile file, hdfsFileInfo *fileInfo) {
-    char *buffer = (char *) malloc(sizeof(char) * options.buffer_size);
-    tSize total_read = 0, read = 0;
-    do {
-        read = hdfsRead(fs, file, buffer, options.buffer_size);
-
-        if (read > 0) {
-            useData(buffer, read);
-        }
-
-        total_read += read;
-    } while (read > 0);
-
-    if (total_read == 0) {
-        fprintf(stderr, "Failed to read any byte from the file\n");
-        exit(1);
-    }
-
-    free(buffer);
-
-    if (options.verbose) {
-        cout << "Performed Standard/SCR" << endl;
-    }
-    return true;
-}
-
 int main(int argc, char *argv[]) {
     parse_options(argc, argv);
 
@@ -279,11 +199,13 @@ int main(int argc, char *argv[]) {
         uint block = 0;
         for (block = 0; hosts[block]; block++) {
             cout << "Block[" << block << "]" << endl;
-            for (uint j = 0; hosts[block][j]; j++)
+			uint j = 0;
+            for (j = 0; hosts[block][j]; j++)
                 cout << "\t[" << j << "]: " << hosts[block][j] << endl;
 
             // Open and read the file
-            hdfsFile file = hdfsOpenFile2(fs, hosts[block][0], options.path, O_RDONLY, options.buffer_size, 0, 0);
+			const char *hostname = hosts[block][j-1];
+            hdfsFile file = hdfsOpenFile2(fs, hostname, options.path, O_RDONLY, options.buffer_size, 0, 0);
             EXPECT_NONZERO(file, "hdfsOpenFile")
 
             int r = hdfsSeek(fs, file, fileInfo->mBlockSize*block);
@@ -294,6 +216,7 @@ int main(int argc, char *argv[]) {
 
             tSize read = hdfsRead(fs, file, buffer, fileInfo->mBlockSize);
             EXPECT_NONNEGATIVE(read, "hdfsRead")
+			printf("Read %iB from %s\n", read, hostname);
 
             hdfsCloseFile(fs, file);
         }
