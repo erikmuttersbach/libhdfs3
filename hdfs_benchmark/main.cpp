@@ -5,6 +5,7 @@
 #include "../src/client/hdfs.h"
 
 #include <cassert>
+#include <inttypes.h>
 
 using namespace std;
 
@@ -192,11 +193,17 @@ int main(int argc, char *argv[]) {
         printf("File %s does not exist\n", options.path);
     } else {
         hdfsFileInfo *fileInfo = hdfsGetPathInfo(fs, options.path);
+		printf("Block size %i, %i\n", (int)fileInfo->mBlockSize, (int)hdfsGetDefaultBlockSize(fs));
+
 
         char ***hosts = hdfsGetHosts(fs, options.path, 0, fileInfo->mSize);
         EXPECT_NONZERO(hosts, "hdfsGetHosts")
 
-        uint block = 0;
+		// Start Time
+		struct timespec start, end;
+		clock_gettime(CLOCK_MONOTONIC, &start);
+
+        int64_t block = 0;
         for (block = 0; hosts[block]; block++) {
             cout << "Block[" << block << "]" << endl;
 			uint j = 0;
@@ -206,26 +213,41 @@ int main(int argc, char *argv[]) {
             // Open and read the file
 			const char *hostname = hosts[block][j-1];
             hdfsFile file = hdfsOpenFile2(fs, hostname, options.path, O_RDONLY, options.buffer_size, 0, 0);
-            EXPECT_NONZERO(file, "hdfsOpenFile")
+            //hdfsFile file = hdfsOpenFile(fs, options.path, O_RDONLY, options.buffer_size, 0, 0);
+			EXPECT_NONZERO(file, "hdfsOpenFile")
 
-            int r = hdfsSeek(fs, file, fileInfo->mBlockSize*block);
+			int64_t seek = fileInfo->mBlockSize*block;
+			printf("Seeking to %" PRId64 "\n", seek);
+            int r = hdfsSeek(fs, file, seek);
             EXPECT_NONNEGATIVE(r, "hdfsSeek")
+			
+            void *buffer = malloc(options.buffer_size);
+			tSize read = 0, totalRead = 0;
+			do {
+        		read = hdfsRead(fs, file, buffer, options.buffer_size);
+				EXPECT_NONNEGATIVE(read, "hdfsRead")
 
-            void *buffer = malloc(fileInfo->mBlockSize);
-            EXPECT_NONNEGATIVE(buffer, "malloc")
+        		if (read > 0) {
+            		useData(buffer, read);
+        		}
 
-            tSize read = hdfsRead(fs, file, buffer, fileInfo->mBlockSize);
-            EXPECT_NONNEGATIVE(read, "hdfsRead")
-			printf("Read %iB from %s\n", read, hostname);
+        		totalRead += read;
+    		} while (read > 0 && totalRead < fileInfo->mBlockSize);
+			
+			printf("Read %" PRId64 "B from %s\n", (int64_t)totalRead, hostname);
 
             hdfsCloseFile(fs, file);
         }
 
-        // Open and read the file
-        //hdfsFile file = hdfsOpenFile2(fs, "ubuntu", options.path, O_RDONLY, options.buffer_size, 0, 0);
-        //EXPECT_NONZERO(file, "hdfsOpenFile")
+		clock_gettime(CLOCK_MONOTONIC, &end);
+    	struct timespec d = timespec_diff(start, end);
+    	double speed = (((double) fileInfo->mSize) / ((double) d.tv_sec + d.tv_nsec / 1000000000.0)) / (1024.0 * 1024.0);
 
-
+    	if(options.verbose) {
+        	printf("Read %f MB with %lfMiB/s\n", ((double) fileInfo->mSize) / (1024.0 * 1024.0), speed);
+    	} else {
+        	printf("%f\n", speed);
+    	}
 
         hdfsFreeFileInfo(fileInfo, 1);
         //hdfsCloseFile(fs, file);
