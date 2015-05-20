@@ -309,6 +309,7 @@ bool InputStreamImpl::choseBestNode() {
         return true;
     }
 
+    LOG(INFO, "Could not find a node to read block, scoped to %s" hostname.c_str());
     return false;
 }
 
