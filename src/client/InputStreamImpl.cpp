@@ -309,7 +309,11 @@ bool InputStreamImpl::choseBestNode() {
         return true;
     }
 
-    LOG(INFO, "Could not find a node to read block, scoped to %s" hostname.c_str());
+	std::string log = "";
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        log += ", "+nodes[i].getHostName();
+    }
+    LOG(INFO, "Could not find a node to read block, scoped to %s, %i nodes %s", hostname.c_str(), (int)nodes.size(), log.c_str());
     return false;
 }
 
