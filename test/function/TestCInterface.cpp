@@ -1006,7 +1006,7 @@ TEST_F(TestCInterface, TestUtime_Success) {
     EXPECT_EQ(0, err);
     info = hdfsGetPathInfo(fs, BASE_DIR"/testUtimeFile");
     ASSERT_TRUE(info);
-    EXPECT_TRUE(now == info->mLastAccess && info->mLastAccess);
+    EXPECT_TRUE(now / 1000 == info->mLastAccess && info->mLastAccess);
     hdfsFreeFileInfo(info, 1);
 }
 

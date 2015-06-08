@@ -1019,8 +1019,8 @@ static void ConstructHdfsFileInfo(hdfsFileInfo * infos,
         infos[i].mKind =
             status[i].isDirectory() ?
             kObjectKindDirectory : kObjectKindFile;
-        infos[i].mLastAccess = status[i].getAccessTime();
-        infos[i].mLastMod = status[i].getModificationTime();
+        infos[i].mLastAccess = status[i].getAccessTime() / 1000;
+        infos[i].mLastMod = status[i].getModificationTime() / 1000;
         infos[i].mName = Strdup(status[i].getPath());
         infos[i].mOwner = Strdup(status[i].getOwner());
         infos[i].mPermissions = status[i].getPermission().toShort();
