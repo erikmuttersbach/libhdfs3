@@ -129,9 +129,10 @@ void LeaseRenewerImpl::renewer() {
 
                     continue;
                 } catch (const HdfsException & e) {
+                    std::string buffer;
                     LOG(LOG_ERROR,
                         "Failed to renew lease for filesystem which client name is %s, since:\n%s",
-                        fs->getClientName(), GetExceptionDetail(e));
+                        fs->getClientName(), GetExceptionDetail(e, buffer));
                 } catch (const std::exception & e) {
                     LOG(LOG_ERROR,
                         "Failed to renew lease for filesystem which client name is %s, since:\n%s",

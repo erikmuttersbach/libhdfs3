@@ -103,8 +103,9 @@ void RpcClientImpl::clean() {
             }
         }
     } catch (const Hdfs::HdfsException & e) {
+        std::string buffer;
         LOG(LOG_ERROR, "RpcClientImpl's idle cleaner exit: %s",
-            GetExceptionDetail(e));
+            GetExceptionDetail(e, buffer));
     } catch (const std::exception & e) {
         LOG(LOG_ERROR, "RpcClientImpl's idle cleaner exit: %s", e.what());
     }

@@ -171,17 +171,19 @@ int64_t InputStreamImpl::readBlockLength(const LocatedBlock & b) {
                 return n;
             }
         } catch (const ReplicaNotFoundException & e) {
+            std::string buffer;
             LOG(LOG_ERROR,
                 "InputStreamImpl: failed to get block visible length for Block: %s file %s from Datanode: %s\n%s",
-                b.toString().c_str(), path.c_str(), nodes[i].formatAddress().c_str(), GetExceptionDetail(e));
+                b.toString().c_str(), path.c_str(), nodes[i].formatAddress().c_str(), GetExceptionDetail(e, buffer));
             LOG(INFO,
                 "InputStreamImpl: retry get block visible length for Block: %s file %s from other datanode",
                 b.toString().c_str(), path.c_str());
             --replicaNotFoundCount;
         } catch (const HdfsIOException & e) {
+            std::string buffer;
             LOG(LOG_ERROR,
                 "InputStreamImpl: failed to get block visible length for Block: %s file %s from Datanode: %s\n%s",
-                b.toString().c_str(), path.c_str(), nodes[i].formatAddress().c_str(), GetExceptionDetail(e));
+                b.toString().c_str(), path.c_str(), nodes[i].formatAddress().c_str(), GetExceptionDetail(e, buffer));
             LOG(INFO,
                 "InputStreamImpl: retry get block visible length for Block: %s file %s from other datanode",
                 b.toString().c_str(), path.c_str());
@@ -248,9 +250,10 @@ void InputStreamImpl::updateBlockInfos() {
 
             return;
         } catch (const HdfsRpcException & e) {
+            std::string buffer;
             LOG(LOG_ERROR,
                 "InputStreamImpl: failed to get block information for file %s, %s",
-                path.c_str(), GetExceptionDetail(e));
+                path.c_str(), GetExceptionDetail(e, buffer));
 
             if (i + 1 >= retry) {
                 throw;
@@ -377,13 +380,14 @@ void InputStreamImpl::setupBlockReader(bool temporaryDisableLocalRead) {
             break;
         } catch (const HdfsIOException & e) {
             lastException = current_exception();
+            std::string buffer;
 
             if (lastReadFromLocal) {
                 LOG(LOG_ERROR,
                     "cannot setup block reader for Block: %s file %s on Datanode: %s.\n%s\n"
                     "retry the same node but disable read shortcircuit feature",
                     curBlock->toString().c_str(), path.c_str(),
-                    curNode.formatAddress().c_str(), GetExceptionDetail(e));
+                    curNode.formatAddress().c_str(), GetExceptionDetail(e, buffer));
                 /*
                  * do not add node into failedNodes since we will retry the same node but
                  * disable local block reading
@@ -392,7 +396,7 @@ void InputStreamImpl::setupBlockReader(bool temporaryDisableLocalRead) {
                 LOG(LOG_ERROR,
                     "cannot setup block reader for Block: %s file %s on Datanode: %s.\n%s\nretry another node",
                     curBlock->toString().c_str(), path.c_str(),
-                    curNode.formatAddress().c_str(), GetExceptionDetail(e));
+                    curNode.formatAddress().c_str(), GetExceptionDetail(e, buffer));
                 failedNodes.push_back(curNode);
                 std::sort(failedNodes.begin(), failedNodes.end());
             }
@@ -458,6 +462,7 @@ int32_t InputStreamImpl::read(char * buf, int32_t size) {
 
 int32_t InputStreamImpl::readOneBlock(char * buf, int32_t size, bool shouldUpdateMetadataOnFailure) {
     bool temporaryDisableLocalRead = false;
+    std::string buffer;
 
     while (true) {
         try {
@@ -469,9 +474,10 @@ int32_t InputStreamImpl::readOneBlock(char * buf, int32_t size, bool shouldUpdat
                 temporaryDisableLocalRead = false;
             }
         } catch (const HdfsInvalidBlockToken & e) {
+            std::string buffer;
             LOG(LOG_ERROR,
                 "InputStreamImpl: failed to read Block: %s file %s, \n%s, retry after updating block informations.",
-                curBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e));
+                curBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e, buffer));
             return -1;
         } catch (const HdfsIOException & e) {
             /*
@@ -482,7 +488,7 @@ int32_t InputStreamImpl::readOneBlock(char * buf, int32_t size, bool shouldUpdat
                 LOG(LOG_ERROR,
                     "InputStreamImpl: failed to read Block: %s file %s, \n%s, retry after updating block informations.",
                     curBlock->toString().c_str(), path.c_str(),
-                    GetExceptionDetail(e));
+                    GetExceptionDetail(e, buffer));
                 return -1;
             } else {
                 /*
@@ -515,7 +521,7 @@ int32_t InputStreamImpl::readOneBlock(char * buf, int32_t size, bool shouldUpdat
                 "InputStreamImpl: failed to read Block: %s file %s from Datanode: %s, \n%s, "
                 "retry read again from another Datanode.",
                 curBlock->toString().c_str(), path.c_str(),
-                curNode.formatAddress().c_str(), GetExceptionDetail(e));
+                curNode.formatAddress().c_str(), GetExceptionDetail(e, buffer));
 
             if (conf->doesNotRetryAnotherNode()) {
                 throw;
@@ -525,7 +531,7 @@ int32_t InputStreamImpl::readOneBlock(char * buf, int32_t size, bool shouldUpdat
                 "InputStreamImpl: failed to read Block: %s file %s from Datanode: %s, \n%s, "
                 "retry read again from another Datanode.",
                 curBlock->toString().c_str(), path.c_str(),
-                curNode.formatAddress().c_str(), GetExceptionDetail(e));
+                curNode.formatAddress().c_str(), GetExceptionDetail(e, buffer));
         }
 
         /*
@@ -735,12 +741,14 @@ void InputStreamImpl::seekInternal(int64_t pos) {
             return;
         }
     } catch (const HdfsIOException & e) {
+        std::string buffer;
         LOG(LOG_ERROR, "InputStreamImpl: failed to skip %" PRId64 " bytes in current block reader for file %s\n%s",
-            pos - cursor, path.c_str(), GetExceptionDetail(e));
+            pos - cursor, path.c_str(), GetExceptionDetail(e, buffer));
         LOG(INFO, "InputStreamImpl: retry to seek to position %" PRId64 " for file %s", pos, path.c_str());
     } catch (const ChecksumException & e) {
+        std::string buffer;
         LOG(LOG_ERROR, "InputStreamImpl: failed to skip %" PRId64 " bytes in current block reader for file %s\n%s",
-            pos - cursor, path.c_str(), GetExceptionDetail(e));
+            pos - cursor, path.c_str(), GetExceptionDetail(e, buffer));
         LOG(INFO, "InputStreamImpl: retry to seek to position %" PRId64 " for file %s", pos, path.c_str());
     }
 

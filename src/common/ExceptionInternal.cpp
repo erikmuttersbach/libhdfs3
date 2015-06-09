@@ -62,18 +62,6 @@ const char * GetSystemErrorInfo(int eno) {
     return message;
 }
 
-static THREAD_LOCAL std::string * MessageBuffer = NULL;
-static THREAD_LOCAL once_flag once;
-
-static void CreateMessageBuffer() {
-    MessageBuffer = new std::string;
-}
-
-static void InitMessageBuffer() {
-    call_once(once, &CreateMessageBuffer);
-    assert(MessageBuffer != NULL);
-}
-
 static void GetExceptionDetailInternal(const Hdfs::HdfsException & e,
                                        std::stringstream & ss, bool topLevel);
 
@@ -119,41 +107,39 @@ static void GetExceptionDetailInternal(const Hdfs::HdfsException & e,
     }
 }
 
-const char * GetExceptionDetail(const Hdfs::HdfsException & e) {
-    std::stringstream ss;
-    ss.imbue(std::locale::classic());
-    GetExceptionDetailInternal(e, ss, true);
-
+const char* GetExceptionDetail(const Hdfs::HdfsException& e,
+                               std::string& buffer) {
     try {
-        InitMessageBuffer();
-        *MessageBuffer = ss.str();
-    } catch (const std::bad_alloc & e) {
+        std::stringstream ss;
+        ss.imbue(std::locale::classic());
+        GetExceptionDetailInternal(e, ss, true);
+        buffer = ss.str();
+    } catch (const std::bad_alloc& e) {
         return "Out of memory";
     }
 
-    return MessageBuffer->c_str();
+    return buffer.c_str();
 }
 
-const char * GetExceptionDetail(const exception_ptr e) {
+const char* GetExceptionDetail(const exception_ptr e, std::string& buffer) {
     std::stringstream ss;
     ss.imbue(std::locale::classic());
 
     try {
-        InitMessageBuffer();
         Hdfs::rethrow_exception(e);
-    } catch (const Hdfs::HdfsException & nested) {
+    } catch (const Hdfs::HdfsException& nested) {
         GetExceptionDetailInternal(nested, ss, true);
-    } catch (const std::exception & nested) {
+    } catch (const std::exception& nested) {
         GetExceptionDetailInternal(nested, ss, true);
     }
 
     try {
-        *MessageBuffer = ss.str();
-    } catch (const std::bad_alloc & e) {
+        buffer = ss.str();
+    } catch (const std::bad_alloc& e) {
         return "Out of memory";
     }
 
-    return MessageBuffer->c_str();
+    return buffer.c_str();
 }
 
 static void GetExceptionMessage(const std::exception & e,

@@ -266,7 +266,8 @@ bool CheckOperationCanceled();
  * @param e The exception which detail message to be return.
  * @return The exception's detail message.
  */
-const char * GetExceptionDetail(const Hdfs::HdfsException & e);
+const char *GetExceptionDetail(const Hdfs::HdfsException &e,
+                               std::string &buffer);
 
 /**
  * Get a exception's detail message.
@@ -274,7 +275,7 @@ const char * GetExceptionDetail(const Hdfs::HdfsException & e);
  * @param e The exception which detail message to be return.
  * @return The exception's detail message.
  */
-const char * GetExceptionDetail(const exception_ptr e);
+const char *GetExceptionDetail(const exception_ptr e, std::string &buffer);
 
 const char * GetExceptionMessage(const exception_ptr e, std::string & buffer);
 

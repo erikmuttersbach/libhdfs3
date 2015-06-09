@@ -89,7 +89,8 @@ static inline const char * GetEnv(const char * key, const char * defaultValue) {
     try { \
         function ; \
     } catch (const Hdfs::HdfsException & e) { \
-        LOG(LOG_ERROR, "DEBUG:\n%s", Hdfs::Internal::GetExceptionDetail(e)); \
+        std::string buffer; \
+        LOG(LOG_ERROR, "DEBUG:\n%s", Hdfs::Internal::GetExceptionDetail(e, buffer)); \
         throw; \
     } catch (const std::exception & e) { \
         LOG(LOG_ERROR, "DEBUG:\n%s", e.what()); \

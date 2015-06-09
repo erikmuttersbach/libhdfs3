@@ -162,9 +162,10 @@ bool PipelineImpl::addDatanodeToPipeline(const std::vector<DatanodeInfo> & exclu
     } catch (const SafeModeException & e) {
         throw;
     } catch (const HdfsException & e) {
+        std::string buffer;
         LOG(LOG_ERROR,
             "Failed to add a new datanode into pipeline for block: %s file %s.\n%s",
-            lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e));
+            lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e, buffer));
     }
 
     return false;
@@ -199,6 +200,7 @@ void PipelineImpl::buildForAppendOrRecovery(bool recovery) {
     exception_ptr lastException;
     std::vector<DatanodeInfo> excludedNodes;
     shared_ptr<LocatedBlock> lb;
+    std::string buffer;
 
     do {
         /*
@@ -270,7 +272,7 @@ void PipelineImpl::buildForAppendOrRecovery(bool recovery) {
             recovery = true;
             LOG(LOG_ERROR,
                 "Pipeline: Failed to build pipeline for block %s file %s, new generation stamp is %" PRId64 ",\n%s",
-                lastBlock->toString().c_str(), path.c_str(), gs, GetExceptionDetail(e));
+                lastBlock->toString().c_str(), path.c_str(), gs, GetExceptionDetail(e, buffer));
             LOG(INFO, "Try to recovery pipeline for block %s file %s.",
                 lastBlock->toString().c_str(), path.c_str());
         } catch (const HdfsTimeoutException & e) {
@@ -278,7 +280,7 @@ void PipelineImpl::buildForAppendOrRecovery(bool recovery) {
             recovery = true;
             LOG(LOG_ERROR,
                 "Pipeline: Failed to build pipeline for block %s file %s, new generation stamp is %" PRId64 ",\n%s",
-                lastBlock->toString().c_str(), path.c_str(), gs, GetExceptionDetail(e));
+                lastBlock->toString().c_str(), path.c_str(), gs, GetExceptionDetail(e, buffer));
             LOG(INFO, "Try to recovery pipeline for block %s file %s.",
                 lastBlock->toString().c_str(), path.c_str());
         } catch (const HdfsIOException & e) {
@@ -289,7 +291,7 @@ void PipelineImpl::buildForAppendOrRecovery(bool recovery) {
             recovery = true;
             LOG(LOG_ERROR,
                 "Pipeline: Failed to build pipeline for block %s file %s, new generation stamp is %" PRId64 ",\n%s",
-                lastBlock->toString().c_str(), path.c_str(), gs, GetExceptionDetail(e));
+                lastBlock->toString().c_str(), path.c_str(), gs, GetExceptionDetail(e, buffer));
             LOG(INFO, "Try to recovery pipeline for block %s file %s.", lastBlock->toString().c_str(), path.c_str());
         }
 
@@ -375,6 +377,7 @@ void PipelineImpl::buildForNewBlock() {
     LocatedBlock lb;
     std::vector<DatanodeInfo> excludedNodes;
     shared_ptr<LocatedBlock> block = lastBlock;
+    std::string buffer;
 
     do {
         errorIndex = -1;
@@ -389,7 +392,7 @@ void PipelineImpl::buildForNewBlock() {
             const char * lastBlockName = lastBlock ? lastBlock->toString().c_str() : "Null";
             LOG(LOG_ERROR,
                 "Failed to allocate a new empty block for file %s, last block %s, excluded nodes %s.\n%s",
-                path.c_str(), lastBlockName, FormatExcludedNodes(excludedNodes).c_str(), GetExceptionDetail(e));
+                path.c_str(), lastBlockName, FormatExcludedNodes(excludedNodes).c_str(), GetExceptionDetail(e, buffer));
 
             if (retryAllocNewBlock > blockWriteRetry) {
                 throw;
@@ -403,7 +406,7 @@ void PipelineImpl::buildForNewBlock() {
             const char * lastBlockName = lastBlock ? lastBlock->toString().c_str() : "Null";
             LOG(LOG_ERROR,
                 "Failed to allocate a new empty block for file %s, last block %s, excluded nodes %s.\n%s",
-                path.c_str(), lastBlockName, FormatExcludedNodes(excludedNodes).c_str(), GetExceptionDetail(e));
+                path.c_str(), lastBlockName, FormatExcludedNodes(excludedNodes).c_str(), GetExceptionDetail(e, buffer));
             throw;
         }
 
@@ -422,15 +425,15 @@ void PipelineImpl::buildForNewBlock() {
         } catch (const HdfsInvalidBlockToken & e) {
             LOG(LOG_ERROR,
                 "Failed to setup the pipeline for new block %s file %s.\n%s",
-                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e));
+                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e, buffer));
         } catch (const HdfsTimeoutException & e) {
             LOG(LOG_ERROR,
                 "Failed to setup the pipeline for new block %s file %s.\n%s",
-                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e));
+                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e, buffer));
         } catch (const HdfsIOException & e) {
             LOG(LOG_ERROR,
                 "Failed to setup the pipeline for new block %s file %s.\n%s",
-                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e));
+                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e, buffer));
         }
 
         LOG(INFO, "Abandoning block: %s for file %s.", lastBlock->toString().c_str(), path.c_str());
@@ -440,7 +443,7 @@ void PipelineImpl::buildForNewBlock() {
         } catch (const HdfsException & e) {
             LOG(LOG_ERROR,
                 "Failed to abandon useless block %s for file %s.\n%s",
-                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e));
+                lastBlock->toString().c_str(), path.c_str(), GetExceptionDetail(e, buffer));
             throw;
         }
 
@@ -747,10 +750,11 @@ void PipelineImpl::waitForAcks(bool force) {
                 errorIndex = 0;
             }
 
+            std::string buffer;
             LOG(LOG_ERROR,
                 "Failed to flush pipeline on datanode %s for block %s file %s.\n%s",
                 nodes[errorIndex].formatAddress().c_str(), lastBlock->toString().c_str(),
-                path.c_str(), GetExceptionDetail(e));
+                path.c_str(), GetExceptionDetail(e, buffer));
             LOG(INFO, "Rebuild pipeline to flush for block %s file %s.", lastBlock->toString().c_str(), path.c_str());
             sock.reset();
             failover = true;
