@@ -1091,19 +1091,20 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries) {
     delete[] infos;
 }
 
-/*char ** * hdfsGetHosts(hdfsFS fs, const char * path, tOffset start,
-                       tOffset length) {
-    PARAMETER_ASSERT(fs && path && strlen(path) > 0 && start > 0, NULL, EINVAL);
-    char ** * retval = NULL;
+char ***hdfsGetHosts(hdfsFS fs, const char *path, tOffset start,
+                     tOffset length) {
+    PARAMETER_ASSERT(fs && path && strlen(path) > 0, NULL, EINVAL);
+    PARAMETER_ASSERT(start >= 0 && length > 0, NULL, EINVAL);
+    char ***retval = NULL;
 
     try {
         std::vector<Hdfs::BlockLocation> bls =
             fs->getFilesystem().getFileBlockLocations(path, start, length);
-        retval = new char ** [bls.size() + 1];
+        retval = new char **[bls.size() + 1];
         memset(retval, 0, sizeof(char **) * (bls.size() + 1));
 
         for (size_t i = 0; i < bls.size(); ++i) {
-            const std::vector<std::string> & hosts = bls[i].getHosts();
+            const std::vector<std::string> &hosts = bls[i].getHosts();
             retval[i] = new char *[hosts.size() + 1];
             memset(retval[i], 0, sizeof(char *) * (hosts.size() + 1));
 
@@ -1111,7 +1112,9 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries) {
                 retval[i][j] = Strdup(hosts[j].c_str());
             }
         }
-    } catch (const std::bad_alloc & e) {
+
+        return retval;
+    } catch (const std::bad_alloc &e) {
         SetConstErrorMessage("Out of memory");
         hdfsFreeHosts(retval);
         errno = ENOMEM;
@@ -1122,9 +1125,9 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries) {
     }
 
     return NULL;
-}*/
+}
 
-/*void hdfsFreeHosts(char ** *blockHosts) {
+void hdfsFreeHosts(char ***blockHosts) {
     if (blockHosts == NULL) {
         return;
     }
@@ -1138,7 +1141,7 @@ void hdfsFreeFileInfo(hdfsFileInfo * infos, int numEntries) {
     }
 
     delete[] blockHosts;
-}*/
+}
 
 tOffset hdfsGetDefaultBlockSize(hdfsFS fs) {
     PARAMETER_ASSERT(fs != NULL, -1, EINVAL);

@@ -1550,3 +1550,44 @@ TEST_F(TestCInterface, TestGetBlockFileLocations_Success) {
     hdfsCloseFile(fs, out);
 }
 
+TEST_F(TestCInterface, TestGetHosts_Failure) {
+    EXPECT_TRUE(NULL == hdfsGetHosts(NULL, NULL, 0, 0));
+    EXPECT_TRUE(errno == EINVAL);
+    EXPECT_TRUE(NULL == hdfsGetHosts(fs, NULL, 0, 0));
+    EXPECT_TRUE(errno == EINVAL);
+    EXPECT_TRUE(NULL == hdfsGetHosts(fs, "", 0, 0));
+    EXPECT_TRUE(errno == EINVAL);
+    EXPECT_TRUE(NULL == hdfsGetHosts(fs, "NOTEXIST", 0, 0));
+    EXPECT_TRUE(errno == EINVAL);
+    EXPECT_TRUE(NULL == hdfsGetHosts(fs, "NOTEXIST", -1, 1));
+    EXPECT_TRUE(errno == EINVAL);
+    EXPECT_TRUE(NULL == hdfsGetHosts(fs, "NOTEXIST", 0, 1));
+    EXPECT_TRUE(errno == ENOENT);
+}
+
+TEST_F(TestCInterface, TestGetHosts_Success) {
+    char ***hosts;
+    hdfsFile out = NULL;
+    std::vector<char> buffer(1025);
+    out = hdfsOpenFile(fs, BASE_DIR "/TestGetHosts_Success", O_WRONLY, 0, 0,
+                       1024);
+    ASSERT_TRUE(NULL != out);
+    hdfsCloseFile(fs, out);
+    hosts = hdfsGetHosts(fs, BASE_DIR "/TestGetHosts_Success", 0, 1);
+    EXPECT_TRUE(NULL != hosts);
+    EXPECT_TRUE(NULL == hosts[0]);
+    hdfsFreeHosts(hosts);
+    out = hdfsOpenFile(fs, BASE_DIR "/TestGetHosts_Success", O_WRONLY, 0, 0,
+                       1024);
+    ASSERT_TRUE(NULL != out);
+    ASSERT_TRUE(buffer.size() == hdfsWrite(fs, out, &buffer[0], buffer.size()));
+    ASSERT_TRUE(0 == hdfsSync(fs, out));
+    hosts =
+        hdfsGetHosts(fs, BASE_DIR "/TestGetHosts_Success", 0, buffer.size());
+    EXPECT_TRUE(NULL != hosts);
+    EXPECT_TRUE(NULL != hosts[0]);
+    EXPECT_TRUE(NULL != hosts[1]);
+    EXPECT_TRUE(NULL == hosts[2]);
+    hdfsFreeHosts(hosts);
+    hdfsCloseFile(fs, out);
+}
