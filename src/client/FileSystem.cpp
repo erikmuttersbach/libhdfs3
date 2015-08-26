@@ -109,7 +109,7 @@ static std::string ExtractPrincipalFromTicketCache(
 
     if (!errmsg.empty()) {
         THROW(HdfsIOException,
-              "FileSystem: Filed to extract principal from ticket cache: %s",
+              "FileSystem: Failed to extract principal from ticket cache: %s",
               errmsg.c_str());
     }
 
