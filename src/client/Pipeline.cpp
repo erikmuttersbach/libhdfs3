@@ -323,7 +323,8 @@ void PipelineImpl::buildForAppendOrRecovery(bool recovery) {
 
 void PipelineImpl::locateNextBlock(
     const std::vector<DatanodeInfo> & excludedNodes) {
-    milliseconds sleeptime(400);
+    milliseconds sleeptime(100);
+    milliseconds fiveSeconds(5000);
     int retry = blockWriteRetry;
 
     while (true) {
@@ -344,6 +345,7 @@ void PipelineImpl::locateNextBlock(
                 }
 
                 sleeptime *= 2;
+                sleeptime = sleeptime < fiveSeconds ? sleeptime : fiveSeconds;
             } else {
                 throw;
             }
