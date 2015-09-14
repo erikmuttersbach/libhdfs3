@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <limits>
 #include <string>
 #include <sstream>
 #include <limits>
