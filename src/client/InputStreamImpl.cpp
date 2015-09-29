@@ -66,6 +66,11 @@ unordered_set<std::string> BuildLocalAddrSet() {
 
         for (pifAddr = ifAddr; pifAddr != NULL; pifAddr = pifAddr->ifa_next) {
             addr = pifAddr->ifa_addr;
+
+            if (!addr) {
+                continue;
+            }
+
             memset(&host[0], 0, INET6_ADDRSTRLEN + 1);
 
             if (addr->sa_family == AF_INET) {
