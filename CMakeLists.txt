@@ -30,6 +30,15 @@ ADD_SUBDIRECTORY(gtest)
 ADD_SUBDIRECTORY(gmock)
 ADD_SUBDIRECTORY(test)
 
+CONFIGURE_FILE(src/libhdfs3.pc.in ${CMAKE_SOURCE_DIR}/src/libhdfs3.pc @ONLY)
+CONFIGURE_FILE(debian/changelog.in ${CMAKE_SOURCE_DIR}/debian/changelog @ONLY)
+
+ADD_CUSTOM_TARGET(debian-package
+	COMMAND dpkg-buildpackage -us -uc -b
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	COMMENT "Create debian package..."
+)
+
 ADD_CUSTOM_TARGET(doc
 	COMMAND doxygen ${CMAKE_BINARY_DIR}/src/doxyfile
 	WORKING_DIRECTORY ${DOXYFILE_PATH}
