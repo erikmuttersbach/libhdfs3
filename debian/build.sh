@@ -1,5 +1,8 @@
 #!/bin/bash
 
+this_dir=`cd "\`dirname \"$0\"\`";pwd`
+top_dir=${this_dir}/../
+
 die() {
     echo "$@" 1>&2 ; popd 2>/dev/null; exit 1
 }
@@ -14,29 +17,24 @@ install_depends() {
 }
 
 build_with_boost() {
-    rm -rf build
-    mkdir -p build || die "cannot create build directory"
-    pushd build || die "cannot enter build directory"
+    pushd ${top_dir}
+    rm -rf build && mkdir -p build && cd build || die "cannot create build directory"
     ../bootstrap --enable-boost || die "bootstrap failed"
-    make || die "build failed"
-    make unittest || die "failed to run unit tests"
+    make -j2 unittest || die "failed to run unit tests"
     popd
 }
 
 build_with_debug() {
-    rm -rf build
-    mkdir -p build || die "cannot create build directory"
-    pushd build || die "cannot enter build directory"
+    pushd ${top_dir}
+    rm -rf build && mkdir -p build && cd build || die "cannot create build directory"
     ../bootstrap --enable-debug || die "bootstrap failed"
-    make || die "build failed"
-    make unittest || die "failed to run unit tests"
+    make -j2 unittest || die "failed to run unit tests"
     popd
 }
 
 create_package() {
-	rm -rf build
-	mkdir -p build || die "cannot create build directory"
-    pushd build || die "cannot enter build directory"
+	pushd ${top_dir}
+    rm -rf build && mkdir -p build && cd build || die "cannot create build directory"
     ../bootstrap || die "bootstrap failed"
 	make debian-package || die "failed to create debian package"
 	popd
