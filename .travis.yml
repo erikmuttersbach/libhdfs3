@@ -10,4 +10,5 @@ services:
 
 script: 
   - pwd && env && echo $PATH 
-  - docker run -it -v `pwd`:/build-libhdfs3 --name=build-libhdfs3 ubuntu:14.04 bash -c 'cd /build-libhdfs3; debian/build.sh run'
+  - docker run -it --rm=true -v `pwd`:/build-libhdfs3 --name=build-libhdfs3 ubuntu:14.04 bash -c 'cd /build-libhdfs3; debian/build.sh run'
+  - docker run -it --rm=true -v `pwd`:/build-libhdfs3 --name=build-libhdfs3 centos:7 bash -c 'cd /build-libhdfs3; rpms/build.sh run'
