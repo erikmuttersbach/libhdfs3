@@ -9,7 +9,7 @@ install_depends() {
     add-apt-repository -y ppa:ubuntu-toolchain-r/test || die "cannot add repository"
     apt-get update || die "cannot update repository"
     apt-get install -qq \
-        dpkg-dev g++ cmake libxml2-dev uuid-dev protobuf-compiler \
+        dpkg-dev debhelper g++ cmake libxml2-dev uuid-dev protobuf-compiler \
         libprotobuf-dev libgsasl7-dev libkrb5-dev libboost-all-dev || die "cannot install dependencies"
 }
 
