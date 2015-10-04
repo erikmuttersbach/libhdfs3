@@ -765,8 +765,8 @@ void RpcChannelImpl::readOneResponse(bool writeLock) {
     std::vector<char> buffer(128);
     RpcResponseHeaderProto curRespHeader;
     RpcResponseHeaderProto::RpcStatusProto status;
-    uint32_t totalen, headerSize = 0, bodySize = 0;
-    totalen = in->readBigEndianInt32(readTimeout);
+    uint32_t headerSize = 0, bodySize = 0;
+    in->readBigEndianInt32(readTimeout);
     /*
      * read response header
      */

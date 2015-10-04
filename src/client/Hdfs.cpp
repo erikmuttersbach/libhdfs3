@@ -1417,7 +1417,7 @@ BlockLocation * hdfsGetFileBlockLocations(hdfsFS fs, const char * path,
         size = locations.size();
         retval = new BlockLocation[size];
 
-        for (size_t i = 0; i < size; ++i) {
+        for (int i = 0; i < size; ++i) {
             ConstructFileBlockLocation(locations[i], &retval[i]);
         }
 
