@@ -186,16 +186,14 @@ Config::Config(const char * p) :
 }
 
 void Config::update(const char * p) {
-    char msg[64];
     xmlDocPtr doc; /* the resulting document tree */
     LIBXML_TEST_VERSION
     kv.clear();
     path = p;
 
     if (access(path.c_str(), R_OK)) {
-        strerror_r(errno, msg, sizeof(msg));
         THROW(HdfsBadConfigFoumat, "Cannot read configure file: \"%s\", %s",
-              path.c_str(), msg);
+              path.c_str(), GetSystemErrorInfo(errno));
     }
 
     /* parse the file */
