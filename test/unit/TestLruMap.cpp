@@ -57,8 +57,8 @@ TEST(TestLruMap, TestFindAndErase) {
     map.insert(3, 3);
     map.insert(4, 4);
     int value = 0;
-    EXPECT_EQ(3, map.size());
+    EXPECT_EQ(3u, map.size());
     EXPECT_TRUE(map.findAndErase(2, &value));
     EXPECT_TRUE(value == 2);
-    EXPECT_EQ(2, map.size());
+    EXPECT_EQ(2u, map.size());
 }
