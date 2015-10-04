@@ -32,7 +32,6 @@ ADD_SUBDIRECTORY(test)
 
 CONFIGURE_FILE(src/libhdfs3.pc.in ${CMAKE_SOURCE_DIR}/src/libhdfs3.pc @ONLY)
 CONFIGURE_FILE(debian/changelog.in ${CMAKE_SOURCE_DIR}/debian/changelog @ONLY)
-CONFIGURE_FILE(rpms/libhdfs3.spec.in ${CMAKE_SOURCE_DIR}/rpms/libhdfs3.spec @ONLY)
 
 ADD_CUSTOM_TARGET(debian-package
 	COMMAND dpkg-buildpackage -us -uc -b
@@ -41,7 +40,7 @@ ADD_CUSTOM_TARGET(debian-package
 )
 
 ADD_CUSTOM_TARGET(rpm-package
-	COMMAND rpmbuild -bb --define "_topdir ${CMAKE_SOURCE_DIR}/rpms" ${CMAKE_SOURCE_DIR}/rpms/libhdfs3.spec
+	COMMAND rpmbuild -bb --define "_topdir ${CMAKE_SOURCE_DIR}/rpms" --define "version ${libhdfs3_VERSION_STRING}" ${CMAKE_SOURCE_DIR}/rpms/libhdfs3.spec
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	COMMENT "Create rpm package..."
 )

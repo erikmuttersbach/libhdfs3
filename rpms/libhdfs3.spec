@@ -1,6 +1,5 @@
-%define version @libhdfs3_VERSION_STRING@
 %define name libhdfs3
-%define release 1
+%define release 1%{?dist}
 
 Name: %{name}
 Version: %{version}
@@ -11,8 +10,6 @@ Source0: libhdfs3-%{version}.tar.gz
 
 License: Apache-2.0
 BuildRoot:  %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-
-AutoReq: no
 
 BuildRequires: gcc-c++
 BuildRequires: make
@@ -37,6 +34,8 @@ database engine in Pivotal Hadoop Distribution.
 Summary: Native C/C++ HDFS Client - development files
 Requires: %{name} = %{version}-%{release}
 Group: Development/Libraries
+Requires: libhdfs3 = %{version}-%{release}
+Requires: libuuid-devel libxml2-devel krb5-devel libgsasl-devel protobuf-devel pkgconfig
 
 %description devel
 Libhdfs3, designed as an alternative implementation of libhdfs,
@@ -46,7 +45,6 @@ It gets rid of the drawbacks of JNI, and it has a lightweight,
 small memory footprint code base. In addition, it is easy to use and deploy.
 
 %build
-pwd
 %{_sourcedir}/../../bootstrap --prefix=${RPM_BUILD_ROOT}/usr
 %{__make}
 
@@ -59,13 +57,21 @@ pwd
 
 %files
 %defattr(-,root,root,-)
-%{_prefix}/lib/lib*
+%{_prefix}/lib/lib*.so.*
 
 %files devel
 %defattr(-,root,root,-)
-%{_prefix}/lib/*
+%{_prefix}/lib/lib*.so
+%{_prefix}/lib/*.a
+%{_prefix}/lib/pkgconfig/*
 %{_prefix}/include/*
 
+%post
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+
 %changelog
-* Fri Feb 06 2015 Zhanwei Wang <wangzw@wangzw.org> - 2.2.30-1
+* Sun Oct 04 2015 Zhanwei Wang <wangzw@wangzw.org> - 2.2.30-1
 - Initial RPM release
