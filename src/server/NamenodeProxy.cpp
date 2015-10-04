@@ -76,7 +76,15 @@ static uint32_t GetInitNamenodeIndex(const std::string id) {
         /*
          * created file, initialize it with 0
          */
-        write(fd, &index, sizeof(index));
+        if (write(fd, &index, sizeof(index)) < 0) {
+          LOG(WARNING,
+              "NamenodeProxy: Failed to write current Namenode index into "
+              "cache file.");
+            /*
+             * ignore the failure.
+             */
+        }
+
         flock(fd, LOCK_UN);
         close(fd);
         return index;
@@ -126,7 +134,14 @@ static void SetInitNamenodeIndex(const std::string & id, uint32_t index) {
             return;
         }
 
-        write(fd, &index, sizeof(index));
+        if (write(fd, &index, sizeof(index)) < 0) {
+            LOG(WARNING,
+                "NamenodeProxy: Failed to write current Namenode index into "
+                "cache file.");
+            /*
+             * ignore the failure.
+             */
+        }
         flock(fd, LOCK_UN);
         close(fd);
     }
