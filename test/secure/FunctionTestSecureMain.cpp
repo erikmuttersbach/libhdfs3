@@ -30,7 +30,9 @@
 int main(int argc, char ** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 #ifdef DATA_DIR
-    chdir(DATA_DIR);
+    if (0 != chdir(DATA_DIR)) {
+        abort();
+    }
 #endif
     return RUN_ALL_TESTS();
 }
