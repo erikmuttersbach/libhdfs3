@@ -740,7 +740,14 @@ void InputStreamImpl::seekInternal(int64_t pos) {
     }
 
     try {
-        if (blockReader && pos > cursor && pos < endOfCurBlock) {
+        if (blockReader && pos > cursor && pos < endOfCurBlock &&
+                (pos - cursor) < blockReader->available()) {
+
+            /*
+             * If this seek is to a positive position in the current block, and
+             * this piece of data might already be lying in the TCP buffer, then
+             * just eat up the intervening data.
+             */
             blockReader->skip(pos - cursor);
             cursor = pos;
             return;
