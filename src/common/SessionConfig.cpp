@@ -66,7 +66,7 @@ SessionConfig::SessionConfig(const Config & conf) {
         }, {
             &notRetryAnotherNode, "input.notretry-another-node", false
         }, {
-            &useMappedFile, "input.localread.mappedfile", true
+            &useMappedFile, "input.localread.mappedfile", false
         }, {
             &legacyLocalBlockReader, "dfs.client.use.legacy.blockreader.local", false
         }
