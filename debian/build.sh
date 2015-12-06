@@ -40,11 +40,61 @@ create_package() {
 	popd
 }
 
+
+deploy() {
+    pushd ${top_dir}
+
+    version=$(cat ${top_dir}/obj-x86_64-linux-gnu/version)
+
+    if [ -z "${version}" ]; then
+        die "cannot get version"
+    fi
+    
+    if [ -z "${BINTRAY_KEY}" ]; then
+        die "bintray api key not set"
+    fi
+
+    message=`curl -H "X-Bintray-Publish: 1" -H "X-Bintray-Override: 1" -H "X-Bintray-Debian-Distribution: wheezy" -H "X-Bintray-Debian-Component: contrib" -H "X-Bintray-Debian-Architecture: amd64" \
+      -T ${top_dir}/../libhdfs3_${version}-1_amd64.deb -uwangzw:${BINTRAY_KEY} \
+      https://api.bintray.com/content/wangzw/deb/libhdfs3/${version}/dists/wheezy/contrib/binary-amd64/libhdfs3_${version}-1_amd64.deb`
+    
+    if [ -z `echo ${message} | grep "success"` ]; then
+        echo ${message}
+        die "failed to upload libhdfs3_${version}-1_amd64.deb"
+    fi
+    
+    message=`curl -H "X-Bintray-Publish: 1" -H "X-Bintray-Override: 1" -H "X-Bintray-Debian-Distribution: wheezy" -H "X-Bintray-Debian-Component: contrib" -H "X-Bintray-Debian-Architecture: amd64" \
+      -T ${top_dir}/../libhdfs3-dev_${version}-1_amd64.deb -uwangzw:${BINTRAY_KEY} \
+      https://api.bintray.com/content/wangzw/deb/libhdfs3/${version}/dists/wheezy/contrib/binary-amd64/libhdfs3-dev_${version}-1_amd64.deb`
+    
+    if [ -z `echo ${message} | grep "success"` ]; then
+        echo ${message}
+        die "failed to upload libhdfs3-dev_${version}-1_amd64.deb"
+    fi
+
+    popd
+}
+
 run() {
     install_depends || die "failed to install dependencies"
     build_with_boost || die "build failed with boost"
     build_with_debug || die "build failed with debug mode"
     create_package || die "failed to create debian package"
+    
+    version=$(cat ${top_dir}/obj-x86_64-linux-gnu/version)
+    echo "version ${version}"
+
+    if [ -z "${BRANCH}" ]; then
+        echo "skip deploy since environment variable BRANCH is not set"
+        return
+    fi
+    
+    if [ "${BRANCH}" = "v${version}" ]; then
+        echo "deploy libhdfs3 version ${version}"
+        deploy || die "failed to deploy libhdfs3 rpms"
+    else
+        echo "skip deploy for branch ${BRANCH}"
+    fi
 }
 
 "$@"
