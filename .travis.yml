@@ -8,9 +8,11 @@ sudo: required
 services:
   - docker
 
-secure: "lCKcmop3WE2GUrtpFnLet0GYwNuB0payPwagSdxfiah2FEB4GSXH1S+1DetLDPL0bySfrUf1hiCU/2BwACjPy3d9zkVSQJ3n0OATD11Ino4MkNKAG40sk+G71Ftfo0Fyj3y4TYnVh6MlGNu0aRW7wx8zF/hn5reAkYOofNFXH70="
+env:
+  global:
+    secure: lCKcmop3WE2GUrtpFnLet0GYwNuB0payPwagSdxfiah2FEB4GSXH1S+1DetLDPL0bySfrUf1hiCU/2BwACjPy3d9zkVSQJ3n0OATD11Ino4MkNKAG40sk+G71Ftfo0Fyj3y4TYnVh6MlGNu0aRW7wx8zF/hn5reAkYOofNFXH70=
 
 script: 
-  - pwd && env && echo $PATH 
+  - pwd && env | grep -v "BINTRAY_KEY" && echo $PATH 
   - docker run -it --rm=true -v `pwd`:/build-libhdfs3 --name=build-libhdfs3 -e BRANCH=$TRAVIS_BRANCH -e BINTRAY_KEY=${BINTRAY_KEY} ubuntu:14.04 bash -c 'cd /build-libhdfs3; debian/build.sh run'
   - docker run -it --rm=true -v `pwd`:/build-libhdfs3 --name=build-libhdfs3 -e BRANCH=$TRAVIS_BRANCH -e BINTRAY_KEY=${BINTRAY_KEY} centos:7 bash -c 'cd /build-libhdfs3; rpms/build.sh run'
