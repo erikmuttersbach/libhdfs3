@@ -85,7 +85,7 @@ public:
     MOCK_METHOD0(getFsStats, std::vector<int64_t>());
     MOCK_METHOD1(metaSave, void(
           const std::string & filename));
-    MOCK_METHOD1(getFileInfo, FileStatus(const std::string & src));
+    MOCK_METHOD2(getFileInfo, FileStatus(const std::string & src, bool *exist));
     MOCK_METHOD1(getFileLinkInfo, FileStatus(const std::string & src));
     MOCK_METHOD3(setQuota, void(const std::string & path, int64_t namespaceQuota,
                         int64_t diskspaceQuota));

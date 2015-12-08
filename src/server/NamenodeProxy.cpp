@@ -425,9 +425,9 @@ std::vector<int64_t> NamenodeProxy::getFsStats() {
     NAMENODE_HA_RETRY_END();
 }*/
 
-FileStatus NamenodeProxy::getFileInfo(const std::string & src) {
+FileStatus NamenodeProxy::getFileInfo(const std::string & src, bool *exist) {
     NAMENODE_HA_RETRY_BEGIN();
-    return namenode->getFileInfo(src);
+    return namenode->getFileInfo(src, exist);
     NAMENODE_HA_RETRY_END();
     assert(!"should not reach here");
     return FileStatus();

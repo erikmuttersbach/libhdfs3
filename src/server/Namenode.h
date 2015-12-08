@@ -599,15 +599,16 @@ public:
      * Get the file info for a specific file or directory.
      * @param src The const std::string & representation of the path to the file
      *
-     * @param object containing information regarding the file
-     *         or null if file not found
+     * @param exist *exist will be set to false if target file does not exist
+     *              instead of throw an exception. It can be NULL.
+     *
      * @throw AccessControlException permission denied
      * @throw FileNotFoundException file <code>src</code> is not found
      * @throw UnresolvedLinkException if the path contains a symlink.
      * @throw HdfsIOException If an I/O error occurred
      */
     //Idempotent
-    virtual FileStatus getFileInfo(const std::string & src)
+    virtual FileStatus getFileInfo(const std::string & src, bool *exist)
     /* throw (AccessControlException, FileNotFoundException,
      UnresolvedLinkException, HdfsIOException) */ = 0;
 

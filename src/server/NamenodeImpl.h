@@ -161,7 +161,7 @@ public:
     void metaSave(const std::string & filename) /* throw (HdfsIOException) */;
 
     //Idempotent
-    FileStatus getFileInfo(const std::string & src)
+    FileStatus getFileInfo(const std::string & src, bool *exist)
     /* throw (AccessControlException, FileNotFoundException,
      UnresolvedLinkException, HdfsIOException) */;
 

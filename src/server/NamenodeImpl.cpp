@@ -552,7 +552,7 @@ std::vector<int64_t> NamenodeImpl::getFsStats() { /* throw (HdfsIOException) */
 }*/
 
 //Idempotent
-FileStatus NamenodeImpl::getFileInfo(const std::string & src)
+FileStatus NamenodeImpl::getFileInfo(const std::string & src, bool *exist)
 /* throw (FileNotFoundException,
  UnresolvedLinkException, HdfsIOException) */{
     FileStatus retval;
@@ -566,10 +566,19 @@ FileStatus NamenodeImpl::getFileInfo(const std::string & src)
         if (response.has_fs()) {
             Convert(src, retval, response.fs());
             retval.setPath(src.c_str());
+
+            if (exist) {
+                *exist = true;
+            }
+
             return retval;
         }
 
-        THROW(FileNotFoundException, "Path %s does not exist.", src.c_str());
+        if (!exist) {
+            THROW(FileNotFoundException, "Path %s does not exist.", src.c_str());
+        }
+
+        *exist = false;
     } catch (const HdfsRpcServerException & e) {
         UnWrapper < FileNotFoundException,
                   UnresolvedLinkException, HdfsIOException > unwrapper(e);

@@ -113,7 +113,7 @@ public:
 
     void metaSave(const std::string & filename);
 
-    FileStatus getFileInfo(const std::string & src);
+    FileStatus getFileInfo(const std::string & src, bool *exist);
 
     FileStatus getFileLinkInfo(const std::string & src);
 

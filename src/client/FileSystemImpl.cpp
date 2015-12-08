@@ -295,7 +295,7 @@ FileStatus FileSystemImpl::getFileStatus(const char * path) {
         THROW(InvalidParameter, "Invalid input: path should not be empty");
     }
 
-    return nn->getFileInfo(getStandardPath(path));
+    return nn->getFileInfo(getStandardPath(path), NULL);
 }
 
 static void Convert(BlockLocation & bl, const LocatedBlock & lb) {
@@ -539,7 +539,9 @@ bool FileSystemImpl::exist(const char * path) {
     }
 
     try {
-        getFileStatus(path);
+        bool retval = true;
+        nn->getFileInfo(getStandardPath(path), &retval);
+        return retval;
     } catch (const FileNotFoundException & e) {
         return false;
     }
