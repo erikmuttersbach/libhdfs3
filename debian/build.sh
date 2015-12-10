@@ -54,18 +54,18 @@ deploy() {
         die "bintray api key not set"
     fi
 
-    message=`curl -H "X-Bintray-Publish: 1" -H "X-Bintray-Override: 1" -H "X-Bintray-Debian-Distribution: wheezy" -H "X-Bintray-Debian-Component: contrib" -H "X-Bintray-Debian-Architecture: amd64" \
+    message=`curl -H "X-Bintray-Publish: 1" -H "X-Bintray-Override: 1" -H "X-Bintray-Debian-Distribution: trusty" -H "X-Bintray-Debian-Component: contrib" -H "X-Bintray-Debian-Architecture: amd64" \
       -T ${top_dir}/../libhdfs3_${version}-1_amd64.deb -uwangzw:${BINTRAY_KEY} \
-      https://api.bintray.com/content/wangzw/deb/libhdfs3/${version}/dists/wheezy/contrib/binary-amd64/libhdfs3_${version}-1_amd64.deb`
+      https://api.bintray.com/content/wangzw/deb/libhdfs3/${version}/dists/trusty/contrib/binary-amd64/libhdfs3_${version}-1_amd64.deb`
     
     if [ -z `echo ${message} | grep "success"` ]; then
         echo ${message}
         die "failed to upload libhdfs3_${version}-1_amd64.deb"
     fi
     
-    message=`curl -H "X-Bintray-Publish: 1" -H "X-Bintray-Override: 1" -H "X-Bintray-Debian-Distribution: wheezy" -H "X-Bintray-Debian-Component: contrib" -H "X-Bintray-Debian-Architecture: amd64" \
+    message=`curl -H "X-Bintray-Publish: 1" -H "X-Bintray-Override: 1" -H "X-Bintray-Debian-Distribution: trusty" -H "X-Bintray-Debian-Component: contrib" -H "X-Bintray-Debian-Architecture: amd64" \
       -T ${top_dir}/../libhdfs3-dev_${version}-1_amd64.deb -uwangzw:${BINTRAY_KEY} \
-      https://api.bintray.com/content/wangzw/deb/libhdfs3/${version}/dists/wheezy/contrib/binary-amd64/libhdfs3-dev_${version}-1_amd64.deb`
+      https://api.bintray.com/content/wangzw/deb/libhdfs3/${version}/dists/trusty/contrib/binary-amd64/libhdfs3-dev_${version}-1_amd64.deb`
     
     if [ -z `echo ${message} | grep "success"` ]; then
         echo ${message}
