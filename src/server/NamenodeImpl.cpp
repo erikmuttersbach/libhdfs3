@@ -584,6 +584,8 @@ FileStatus NamenodeImpl::getFileInfo(const std::string & src, bool *exist)
                   UnresolvedLinkException, HdfsIOException > unwrapper(e);
         unwrapper.unwrap(__FILE__, __LINE__);
     }
+
+    return retval;
 }
 
 //Idempotent
