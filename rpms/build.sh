@@ -10,7 +10,7 @@ die() {
 install_depends() {
     yum install -y epel-release || die "cannot install epel"
     yum install -y \
-        make rpmdevtools gcc-c++ cmake boost-devel libxml2-devel libuuid-devel krb5-devel libgsasl-devel \
+        which make rpmdevtools gcc-c++ cmake boost-devel libxml2-devel libuuid-devel krb5-devel libgsasl-devel \
         protobuf-devel || die "cannot install dependencies"
 }
 
