@@ -2,7 +2,7 @@ libhdfs3
 ========================
 [![Build Status](https://travis-ci.org/PivotalRD/libhdfs3.svg?branch=apache-rpc-9)](https://travis-ci.org/PivotalRD/libhdfs3)
 
-**This repository has been moved to Apache HAWQ as a dependent library, and will be deleted soon. For any further information, please visit HAWQ JIRA, Mailing List and repository: [HAWQ Link](https://cwiki.apache.org/confluence/display/HAWQ/Contributing+to+HAWQ) **
+**This repository has been moved to Apache HAWQ as a dependent library, and will be deleted soon. For any further information, please visit HAWQ JIRA, Mailing List and repository: [HAWQ Link](https://cwiki.apache.org/confluence/display/HAWQ/Contributing+to+HAWQ)**
 
 **A Native C/C++ HDFS Client**
 
