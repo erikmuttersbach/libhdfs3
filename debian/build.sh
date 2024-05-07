@@ -50,6 +50,22 @@ build_with_debug() {
     popd
 }
 
+build_release() {
+    pushd ${top_dir}
+    rm -rf build && mkdir -p build && cd build || die "cannot create build directory"
+    ../bootstrap || die "bootstrap failed"
+    make -j || die "failed to run unit tests"
+    popd
+}
+
+build_release_armv8() {
+    pushd ${top_dir}
+    rm -rf build && mkdir -p build && cd build || die "cannot create build directory"
+    ../bootstrap --disable-sse || die "bootstrap failed"
+    make -j || die "failed to run unit tests"
+    popd
+}
+
 unit_tests() {
     pushd ${top_dir}
     rm -rf build && mkdir -p build && cd build || die "cannot create build directory"

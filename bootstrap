@@ -37,6 +37,7 @@ Configuration:
     --enable-boost                  force to enable boost
     --enable-coverage               enable build with code coverage support
     --enable-libc++                 using libc++ instead of libstdc++, only valid for clang compiler
+    --disable-sse                   disable sse support
     
 Dependencies:
     c/c++ compiler
@@ -67,6 +68,7 @@ build_type="Release"
 enable_boost="OFF"
 enable_coverage="OFF"
 enable_clang_lib="OFF"
+enable_sse="ON"
 while test $# != 0; do
     case "$1" in
     --prefix=*) dir=`arg "$1"`
@@ -77,6 +79,7 @@ while test $# != 0; do
     --enable-boost) enable_boost="ON";;
     --enable-coverage) enable_coverage="ON";;
     --enable-libc++) enable_clang_lib="ON";;
+    --disable-sse) enable_sse="OFF";;
     --help) usage ;;
     *) die "Unknown option: $1" ;;
     esac
@@ -116,7 +119,8 @@ fi
 ${cmake} -DENABLE_DEBUG=${enable_build} -DCMAKE_INSTALL_PREFIX=${prefix_dirs} \
     -DCMAKE_C_COMPILER=${c_compiler} -DCMAKE_CXX_COMPILER=${cxx_compiler} \
     -DCMAKE_PREFIX_PATH=${dependency_dir} -DENABLE_BOOST=${enable_boost} \
-    -DENABLE_COVERAGE=${enable_coverage} -DENABLE_LIBCPP=${enable_clang_lib} ${source_dir} \
+    -DENABLE_COVERAGE=${enable_coverage} -DENABLE_LIBCPP=${enable_clang_lib} \
+    -DENABLE_SSE=${enable_sse}  ${source_dir} \
     || die "failed to configure the project"
 
 echo 'bootstrap success. Run "make" to build.'
