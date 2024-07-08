@@ -162,4 +162,21 @@ void HWCrc32c::updateInt64(const char * b, int len) {
 }
 }
 
+#else
+namespace Hdfs {
+namespace Internal {
+
+bool HWCrc32c::available() {
+    return false;
+}
+
+void HWCrc32c::update(const void * b, int len) {
+}
+
+void HWCrc32c::updateInt64(const char * b, int len) {
+}
+
+}
+}
+
 #endif /* _HDFS_LIBHDFS3_COMMON_HWCHECKSUM_H_ */
